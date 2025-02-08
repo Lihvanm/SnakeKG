@@ -50,6 +50,11 @@
       display: none; /* Кнопки скрыты до авторизации */
       margin-top: 10px;
     }
+    .faction-selection {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -63,6 +68,12 @@
   <div class="game-buttons" id="gameButtons">
     <button id="sendResultButton" style="display: none;">Отправить результат</button>
     <button id="startGameButton">Начать игру</button>
+  </div>
+  <div class="faction-selection" id="factionSelection" style="display: none;">
+    <button data-faction="fire">Огненный маг</button>
+    <button data-faction="ice">Ледяная колдунья</button>
+    <button data-faction="archer">Лучница</button>
+    <button data-faction="goblin">Гоблин</button>
   </div>
   <div class="stats" id="stats"></div>
   <div class="video-container" id="videoContainer">
