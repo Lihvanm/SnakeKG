@@ -1,4 +1,6 @@
 // auth.js
+
+// Авторизация
 document.getElementById("loginButton").addEventListener("click", handleLogin);
 document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
 document.getElementById("allianceInput").addEventListener("keydown", handleEnterKey);
@@ -40,22 +42,34 @@ function handleEnterKey(event) {
 document.querySelectorAll(".faction-selection button").forEach(button => {
   button.addEventListener("click", () => {
     const faction = button.getAttribute("data-faction");
+    let color;
     switch (faction) {
       case "fire":
-        currentBulletColor = "red";
+        color = "red";
         break;
       case "ice":
-        currentBulletColor = "blue";
+        color = "blue";
         break;
       case "archer":
-        currentBulletColor = "yellow";
+        color = "yellow";
         break;
       case "goblin":
-        currentBulletColor = "green";
+        color = "green";
         break;
     }
-    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
-    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
+
+    // Добавляем цвет кнопке "Начать игру"
+    const startGameButton = document.getElementById("startGameButton");
+    startGameButton.style.display = "block";
+    startGameButton.style.backgroundColor = color;
+
+    // Скрываем выбор фракции
+    document.getElementById("factionSelection").style.display = "none";
+
+    // Останавливаем видео при нажатии на кнопку "Начать игру"
+    startGameButton.addEventListener("click", () => {
+      document.getElementById("videoContainer").style.display = "none";
+    });
   });
 });
 
@@ -69,4 +83,18 @@ function updateStatsUI(nickname, alliance, serverNumber) {
     Текущий счет: ${score}
     Рекорд: ${highScore}
   `;
+}
+
+// Отправка сообщения в Telegram
+async function sendTelegramMessage(nickname, alliance, serverNumber, bestScore) {
+  const message = `🏆 Результаты игры:\nНик: ${nickname}\nАльянс: ${alliance}\nСервер: №${serverNumber}\nНаилучший счет: ${bestScore}`;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+  try {
+    await fetch(url);
+    console.log("Сообщение отправлено в Telegram!");
+    alert("Результат отправлен в группу!");
+  } catch (error) {
+    console.error("Ошибка при отправке сообщения в Telegram:", error);
+    alert("Ошибка при отправке результата. Попробуйте еще раз.");
+  }
 }
