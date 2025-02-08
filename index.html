@@ -15,11 +15,13 @@
       background-color: #000;
       color: #fff;
       font-family: Arial, sans-serif;
+      overflow: hidden; /* Отключаем прокрутку */
     }
     canvas {
       border: 2px solid #fff;
       background-color: #111;
       display: none; /* Скрываем холст до начала игры */
+      touch-action: none; /* Отключаем сенсорные действия */
     }
     .auth-form {
       margin-bottom: 20px;
@@ -55,6 +57,10 @@
       gap: 10px;
       margin-top: 10px;
     }
+    .post-game-options {
+      display: none;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -67,13 +73,17 @@
   </div>
   <div class="game-buttons" id="gameButtons">
     <button id="sendResultButton" style="display: none;">Отправить результат</button>
-    <button id="startGameButton">Начать игру</button>
+    <div class="faction-selection" id="factionSelection" style="display: none;">
+      <button data-faction="fire">Огненный маг</button>
+      <button data-faction="ice">Ледяная колдунья</button>
+      <button data-faction="archer">Лучница</button>
+      <button data-faction="goblin">Гоблин</button>
+    </div>
+    <button id="startGameButton" style="display: none;">Начать игру</button>
   </div>
-  <div class="faction-selection" id="factionSelection" style="display: none;">
-    <button data-faction="fire">Огненный маг</button>
-    <button data-faction="ice">Ледяная колдунья</button>
-    <button data-faction="archer">Лучница</button>
-    <button data-faction="goblin">Гоблин</button>
+  <div class="post-game-options" id="postGameOptions">
+    <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
   </div>
   <div class="stats" id="stats"></div>
   <div class="video-container" id="videoContainer">
