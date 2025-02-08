@@ -4,37 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Змейка</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #000;
+      color: white;
+      font-family: Arial;
+    }
+    
+    #authForm {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    canvas {
+      border: 2px solid #444;
+    }
+    
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #333;
+      color: white;
+      border: none;
+    }
+  </style>
 </head>
 <body>
+  <!-- Форма авторизации -->
   <div id="authForm">
-    <input id="nicknameInput" placeholder="Никнейм" />
-    <input id="allianceInput" placeholder="Альянс" />
-    <input id="serverInput" placeholder="Сервер" />
+    <input id="nicknameInput" placeholder="Никнейм">
+    <input id="allianceInput" placeholder="Альянс">
+    <input id="serverInput" placeholder="Сервер">
     <button id="loginButton">Войти</button>
   </div>
 
-  <div id="videoContainer">
-    <video id="backgroundVideo" autoplay muted loop>
-      <source src="background.mp4" type="video/mp4">
-      Ваш браузер не поддерживает воспроизведение видео.
-    </video>
+  <!-- Выбор фракции -->
+  <div id="factionSelection" style="display:none">
+    <button data-faction="red">Красные</button>
+    <button data-faction="blue">Синие</button>
+    <button data-faction="yellow">Желтые</button>
+    <button data-faction="green">Зеленые</button>
   </div>
 
-  <div id="factionSelection" style="display: none;">
-    <button data-faction="fire">Огненный маг</button>
-    <button data-faction="ice">Ледяная колдунья</button>
-    <button data-faction="archer">Лучница</button>
-    <button data-faction="goblin">Гоблин</button>
-  </div>
+  <!-- Игровое поле -->
+  <canvas id="gameCanvas" width="640" height="640" style="display:none"></canvas>
 
-  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
-  <button id="startGameButton" style="display: none;">Начать игру</button>
-  <div id="stats"></div>
-
-  <div id="postGameOptions" style="display: none;">
-    <button id="restartGameButton">Начать заново</button>
-    <button id="sendResultButtonPostGame">Отправить результат</button>
+  <!-- Кнопки управления -->
+  <div id="gameControls" style="display:none">
+    <button id="startGameButton">Старт</button>
+    <div id="stats"></div>
   </div>
 
   <script src="game.js"></script>
