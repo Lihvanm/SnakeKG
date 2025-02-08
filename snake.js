@@ -85,11 +85,11 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
 function updateStatsUI(nickname, alliance, serverNumber) {
   const statsDiv = document.getElementById("stats");
   statsDiv.innerHTML = `
-    <p>Ник: ${nickname}</p>
-    <p>Альянс: ${alliance}</p>
-    <p>Сервер: №${serverNumber}</p>
-    <p>Текущий счет: ${score}</p>
-    <p>Рекорд: ${highScore}</p>
+    Ник: ${nickname}
+Альянс: ${alliance}
+Сервер: №${serverNumber}
+Текущий счет: ${score}
+Рекорд: ${highScore}
   `;
 }
 
@@ -184,7 +184,7 @@ function moveSnake() {
 function drawSnake() {
   snake.forEach((segment, index) => {
     ctx.beginPath();
-    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2); // Увеличиваем размер шаров
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
@@ -251,10 +251,10 @@ function drawBullets() {
           // Если снаряд сильнее, удаляем звено
           snake.splice(segIndex, 1);
           score++;
-          // Возвращаем голову змейки на одно звено назад
+
+          // Откат головы змеи на одно звено назад
           if (snake.length > 0) {
-            snake.unshift(snakePath[currentSegmentIndex - 1]);
-            currentSegmentIndex--;
+            rollbackSnake();
           }
         } else {
           // Если снаряд слабее, изменяем цвет звена на цвет снаряда
@@ -264,50 +264,50 @@ function drawBullets() {
       }
     });
 
-        // Удаление снаряда за пределами экрана
-        if (
-            bullet.x < 0 ||
-            bullet.x > canvas.width ||
-            bullet.y < 0 ||
-            bullet.y > canvas.height
-        ) {
-            bullets.splice(index, 1);
-        }
-    });
+    // Удаление снаряда за пределами экрана
+    if (
+      bullet.x < 0 ||
+      bullet.x > canvas.width ||
+      bullet.y < 0 ||
+      bullet.y > canvas.height
+    ) {
+      bullets.splice(index, 1);
+    }
+  });
 }
 
 // Получение слабого цвета
 function getWeakColor(color) {
-    const colorOrder = ["red", "yellow", "green", "blue"];
-    const currentIndex = colorOrder.indexOf(color);
-    return colorOrder[(currentIndex + 1) % colorOrder.length];
+  const colorOrder = ["red", "yellow", "green", "blue"];
+  const currentIndex = colorOrder.indexOf(color);
+  return colorOrder[(currentIndex + 1) % colorOrder.length];
 }
 
 // Проверка силы цвета (синий > красный > желтый > зеленый > синий)
 function isStrongerColor(attacker, target) {
-    const hierarchy = { blue: 'red', red: 'yellow', yellow: 'green', green: 'blue' };
-    return hierarchy[attacker] === target;
+  const hierarchy = { blue: 'red', red: 'yellow', yellow: 'green', green: 'blue' };
+  return hierarchy[attacker] === target;
 }
 
 // Обновление змейки при откате головы
 function rollbackSnake() {
-    if (snake.length > 0) {
-        // Удаляем последний сегмент и уменьшаем индекс пути
-        snake.pop();
-        currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
-    }
+  if (snake.length > 0) {
+    // Удаляем последний сегмент и уменьшаем индекс пути
+    snake.pop();
+    currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
+  }
 }
 
 // Отрисовка статистики
 function drawStats() {
-    const statsDiv = document.getElementById("stats");
-    statsDiv.innerHTML = `Рейтинг: ${score} | Рекорд: ${highScore}`;
+  const statsDiv = document.getElementById("stats");
+  statsDiv.innerHTML = `Рейтинг: ${score} | Рекорд: ${highScore}`;
 }
 
 // Сохранение статистики в localStorage
 function saveStats() {
-    highScore = Math.max(highScore, score);
-    localStorage.setItem("highScore", highScore);
+  highScore = Math.max(highScore, score);
+  localStorage.setItem("highScore", highScore);
 }
 
 // Загрузка статистики из localStorage
