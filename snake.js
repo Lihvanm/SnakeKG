@@ -12,6 +12,11 @@ let highScore = 0;
 let isGameOver = false;
 let isLoggedIn = false;
 
+// Переменные для управления выстрелом
+let isAiming = false; // Флаг для наведения цели
+let aimDirection = { x: 0, y: 0 }; // Направление прицеливания
+let currentBulletColor = colors[Math.floor(Math.random() * colors.length)];
+
 // Авторизация
 document.getElementById("loginButton").addEventListener("click", () => {
   const alliance = document.getElementById("allianceInput").value;
@@ -77,6 +82,21 @@ function moveSnake() {
 function drawPlayer() {
   ctx.fillStyle = "white";
   ctx.fillRect(player.x, player.y, gridSize, gridSize);
+}
+
+// Отрисовка направления выстрела
+function drawAimLine() {
+  if (isAiming) {
+    ctx.strokeStyle = currentBulletColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(player.x + gridSize / 2, player.y + gridSize / 2);
+    ctx.lineTo(
+      player.x + gridSize / 2 + aimDirection.x * 100,
+      player.y + gridSize / 2 + aimDirection.y * 100
+    );
+    ctx.stroke();
+  }
 }
 
 // Стрельба
@@ -149,9 +169,6 @@ function loadStats() {
   highScore = parseInt(localStorage.getItem("highScore")) || 0;
 }
 
-// Текущий цвет снаряда
-let currentBulletColor = colors[Math.floor(Math.random() * colors.length)];
-
 // Обновление игры
 function update() {
   if (!isLoggedIn || isGameOver) return;
@@ -162,43 +179,53 @@ function update() {
   drawSnake();
   drawPlayer();
   drawBullets();
+  drawAimLine(); // Отрисовка направления выстрела
   drawStats();
 
   requestAnimationFrame(update);
 }
 
-// Управление
-let lastShotTime = 0;
-document.addEventListener("keydown", event => {
-  const directions = {
-    ArrowUp: { x: 0, y: -1 },
-    ArrowDown: { x: 0, y: 1 },
-    ArrowLeft: { x: -1, y: 0 },
-    ArrowRight: { x: 1, y: 0 }
-  };
-
-  const currentTime = Date.now();
-  if (directions[event.key] && currentTime - lastShotTime > 500) {
-    shootBullet(directions[event.key]);
-    lastShotTime = currentTime;
+// Управление мышью или сенсором
+canvas.addEventListener("mousedown", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("mousemove", (event) => {
+  if (isAiming) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const dx = mouseX - (player.x + gridSize / 2);
+    const dy = mouseY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("mouseup", () => {
+  if (isAiming) {
+    shootBullet(aimDirection);
+    isAiming = false;
   }
 });
 
-// Сенсорное управление
-canvas.addEventListener("touchstart", event => {
-  const touch = event.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const direction = {
-    x: touch.clientX - rect.left - player.x,
-    y: touch.clientY - rect.top - player.y
-  };
-  const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
-  direction.x /= length;
-  direction.y /= length;
-
-  const currentTime = Date.now();
-  if (currentTime - lastShotTime > 500) {
-    shootBullet(direction);
-    lastShotTime = currentTime;
+// Управление сенсором
+canvas.addEventListener("touchstart", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("touchmove", (event) => {
+  if (isAiming) {
+    const touch = event.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    const dx = touchX - (player.x + gridSize / 2);
+    const dy = touchY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("touchend", () => {
+  if (isAiming) {
+    shootBullet(aimDirection);
+    isAiming = false;
   }
 });
