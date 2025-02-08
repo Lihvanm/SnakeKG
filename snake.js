@@ -17,6 +17,10 @@ let isAiming = false; // Флаг для наведения цели
 let aimDirection = { x: 0, y: 0 }; // Направление прицеливания
 let currentBulletColor = colors[Math.floor(Math.random() * colors.length)];
 
+// Telegram Bot API
+const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE"; // Токен вашего бота
+const TELEGRAM_CHAT_ID = "-1002382138419"; // ID группы Snake_KG
+
 // Авторизация
 document.getElementById("loginButton").addEventListener("click", () => {
   const alliance = document.getElementById("allianceInput").value;
@@ -24,13 +28,37 @@ document.getElementById("loginButton").addEventListener("click", () => {
   if (alliance && serverNumber) {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${alliance}! Сервер №${serverNumber}`);
-    document.getElementById("loginButton").style.display = "none";
-    document.getElementById("startGameButton").style.display = "block";
+    document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
     loadStats();
+    updateStatsUI(alliance, serverNumber);
+    document.getElementById("startGameButton").style.display = "block";
   } else {
     alert("Пожалуйста, заполните все поля.");
   }
 });
+
+// Обновление интерфейса статистики
+function updateStatsUI(alliance, serverNumber) {
+  const statsDiv = document.getElementById("stats");
+  statsDiv.innerHTML = `
+    <p>Альянс: ${alliance}</p>
+    <p>Сервер: №${serverNumber}</p>
+    <p>Текущий счет: ${score}</p>
+    <p>Рекорд: ${highScore}</p>
+  `;
+}
+
+// Отправка сообщения в Telegram
+async function sendTelegramMessage(alliance, serverNumber, bestScore) {
+  const message = `🏆 Результаты игры:\nАльянс: ${alliance}\nСервер: №${serverNumber}\nНаилучший счет: ${bestScore}`;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+  try {
+    await fetch(url);
+    console.log("Сообщение отправлено в Telegram!");
+  } catch (error) {
+    console.error("Ошибка при отправке сообщения в Telegram:", error);
+  }
+}
 
 // Начало игры
 document.getElementById("startGameButton").addEventListener("click", () => {
@@ -237,3 +265,12 @@ canvas.addEventListener("touchend", () => {
     isAiming = false;
   }
 });
+
+// Конец игры
+function endGame(alliance, serverNumber) {
+  isGameOver = true;
+  saveStats();
+  alert("Game Over! Your score: " + score);
+  sendTelegramMessage(alliance, serverNumber, score); // Отправляем результат в Telegram
+  document.getElementById("startGameButton").style.display = "block";
+}
