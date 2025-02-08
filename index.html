@@ -20,20 +20,16 @@
       border: 2px solid #fff;
       background-color: #111;
     }
-    .controls {
-      margin-top: 10px;
-    }
-    .controls button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-    }
     .auth-form {
       margin-bottom: 20px;
     }
     .auth-form input {
       padding: 10px;
       margin: 5px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
       font-size: 16px;
     }
   </style>
@@ -46,9 +42,7 @@
     <button id="loginButton">Войти</button>
   </div>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <div class="controls">
-    <button id="shootButton">Shoot</button>
-  </div>
+  <button id="startGameButton" style="display: none;">Начать игру</button>
   <script src="snake.js"></script>
 </body>
 </html>
