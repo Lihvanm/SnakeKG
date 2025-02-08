@@ -28,9 +28,9 @@ document.getElementById("allianceInput").addEventListener("keydown", handleEnter
 document.getElementById("serverInput").addEventListener("keydown", handleEnterKey);
 
 function handleLogin() {
-  const nickname = document.getElementById("nicknameInput").value;
-  const alliance = document.getElementById("allianceInput").value;
-  const serverNumber = document.getElementById("serverInput").value;
+  const nickname = document.getElementById("nicknameInput").value.trim();
+  const alliance = document.getElementById("allianceInput").value.trim();
+  const serverNumber = document.getElementById("serverInput").value.trim();
 
   if (nickname && alliance && serverNumber) {
     isLoggedIn = true;
@@ -301,4 +301,69 @@ function update() {
   moveSnake();
   drawSnake();
   drawPlayer();
-  draw
+  drawBullets();
+  drawAimLine(); // Отрисовка направления выстрела
+  drawStats();
+
+  requestAnimationFrame(update);
+}
+
+// Управление мышью или сенсором
+canvas.addEventListener("mousedown", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("mousemove", (event) => {
+  if (isAiming) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const dx = mouseX - (player.x + gridSize / 2);
+    const dy = mouseY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("mouseup", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Управление сенсором
+canvas.addEventListener("touchstart", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("touchmove", (event) => {
+  if (isAiming) {
+    const touch = event.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    const dx = touchX - (player.x + gridSize / 2);
+    const dy = touchY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("touchend", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Отправка результата
+document.getElementById("sendResultButton").addEventListener("click", () => {
+  const nickname = document.getElementById("nicknameInput").value.trim();
+  const alliance = document.getElementById("allianceInput").value.trim();
+  const serverNumber = document.getElementById("serverInput").value.trim();
+  sendTelegramMessage(nickname, alliance, serverNumber, score);
+  saveStats();
+  document.getElementById("sendResultButton").style.display = "none";
+  document.getElementById("startGameButton").style.display = "block";
+});
