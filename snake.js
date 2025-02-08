@@ -2,10 +2,10 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 // Настройки игры
-const gridSize = 20;
+let gridSize;
 const colors = ["red", "green", "blue", "yellow"];
 let snake = [];
-let player = { x: canvas.width / 2, y: canvas.height / 2 };
+let player = { x: 0, y: 0 };
 let bullets = [];
 let score = 0;
 let highScore = 0;
@@ -82,27 +82,48 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
   });
 });
 
+// Адаптивный размер canvas
+function resizeCanvas() {
+  const size = Math.min(window.innerWidth, window.innerHeight * 0.8);
+  canvas.width = size;
+  canvas.height = size;
+  gridSize = canvas.width / 9; // Ширина змейки = ширина поля / 9
+  player.x = canvas.width / 2;
+  player.y = canvas.height / 2;
+  initSnake();
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas(); // Инициализация при загрузке
+
 // Инициализация змейки
-const initialX = canvas.width - gridSize;
-const initialY = 0;
+let maxRadius;
 
 function initSnake() {
   snake = [];
+  maxRadius = Math.min(canvas.width, canvas.height) / 2 - gridSize;
   for (let i = 0; i < 32; i++) {
-    snake.push({ x: initialX, y: initialY, color: colors[i % colors.length] });
+    snake.push({
+      x: canvas.width / 2 + maxRadius * Math.cos((i * 10 * Math.PI) / 180),
+      y: canvas.height / 2 + maxRadius * Math.sin((i * 10 * Math.PI) / 180),
+      color: colors[i % colors.length],
+    });
   }
 }
 
 // Движение змейки
 let lastSegmentTime = 0;
 let spiralStep = 0;
-const spiralRadius = gridSize;
 
 function moveSnake() {
   const currentTime = Date.now();
 
   if (currentTime - lastSegmentTime >= 1000) {
-    const newSegment = { x: initialX, y: initialY, color: colors[Math.floor(Math.random() * colors.length)] };
+    const newSegment = {
+      x: canvas.width / 2 + maxRadius * Math.cos((spiralStep * Math.PI) / 180),
+      y: canvas.height / 2 + maxRadius * Math.sin((spiralStep * Math.PI) / 180),
+      color: colors[Math.floor(Math.random() * colors.length)],
+    };
     snake.unshift(newSegment);
     lastSegmentTime = currentTime;
   }
@@ -118,8 +139,9 @@ function moveSnake() {
 function moveHead() {
   const head = snake[0];
   const angle = (spiralStep * Math.PI) / 180;
-  head.x = initialX + spiralRadius * Math.cos(angle);
-  head.y = initialY + spiralRadius * Math.sin(angle);
+  const radius = maxRadius * (1 - spiralStep / 360); // Уменьшаем радиус для спирали
+  head.x = canvas.width / 2 + radius * Math.cos(angle);
+  head.y = canvas.height / 2 + radius * Math.sin(angle);
   spiralStep += 1;
 }
 
@@ -134,22 +156,22 @@ function drawSnake() {
   });
 }
 
-// Отрисовка игрока
+// Отрисовка игрока (стрелка в центре)
 function drawPlayer() {
   ctx.fillStyle = "white";
-  ctx.fillRect(player.x, player.y, gridSize, gridSize);
+  ctx.fillRect(player.x - gridSize / 2, player.y - gridSize / 2, gridSize, gridSize); // Стрелок шириной = змейке
 }
 
-// Отрисовка направления выстрела
+// Отрисовка направления выстрела (тонкая стрелка)
 function drawAimLine() {
   if (isAiming) {
     ctx.strokeStyle = currentBulletColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2; // Тонкая стрелка
     ctx.beginPath();
-    ctx.moveTo(player.x + gridSize / 2, player.y + gridSize / 2);
+    ctx.moveTo(player.x, player.y);
     ctx.lineTo(
-      player.x + gridSize / 2 + aimDirection.x * 100,
-      player.y + gridSize / 2 + aimDirection.y * 100
+      player.x + aimDirection.x * 100,
+      player.y + aimDirection.y * 100
     );
     ctx.stroke();
   }
@@ -293,8 +315,8 @@ canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
-    const dx = mouseX - (player.x + gridSize / 2);
-    const dy = mouseY - (player.y + gridSize / 2);
+    const dx = mouseX - player.x;
+    const dy = mouseY - player.y;
     const length = Math.sqrt(dx * dx + dy * dy);
     aimDirection = { x: dx / length, y: dy / length };
   }
@@ -318,8 +340,8 @@ canvas.addEventListener("touchmove", (event) => {
     const rect = canvas.getBoundingClientRect();
     const touchX = touch.clientX - rect.left;
     const touchY = touch.clientY - rect.top;
-    const dx = touchX - (player.x + gridSize / 2);
-    const dy = touchY - (player.y + gridSize / 2);
+    const dx = touchX - player.x;
+    const dy = touchY - player.y;
     const length = Math.sqrt(dx * dx + dy * dy);
     aimDirection = { x: dx / length, y: dy / length };
   }
