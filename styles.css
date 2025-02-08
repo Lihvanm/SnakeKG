@@ -1,53 +1,24 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snake Game</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <!-- Форма авторизации -->
-  <div id="authForm">
-    <h2>Вход в игру</h2>
-    <input type="text" id="nicknameInput" placeholder="Никнейм">
-    <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Сервер">
-    <button id="loginButton">Войти</button>
-    <video id="videoContainer" autoplay loop muted>
-      <source src="background.mp4" type="video/mp4">
-      Ваш браузер не поддерживает видео.
-    </video>
-  </div>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
 
-  <!-- Выбор фракции -->
-  <div id="factionSelection" style="display: none;">
-    <h2>Выберите фракцию</h2>
-    <button data-faction="fire">Огонь</button>
-    <button data-faction="ice">Лед</button>
-    <button data-faction="archer">Лучник</button>
-    <button data-faction="goblin">Гоблин</button>
-  </div>
+#authForm, #factionSelection, #postGameOptions {
+  margin-top: 20px;
+}
 
-  <!-- Игровые кнопки -->
-  <div id="gameButtons" style="display: none;">
-    <button id="startGameButton">Начать игру</button>
-    <button id="sendResultButton" style="display: none;">Отправить результат</button>
-  </div>
+#gameCanvas {
+  display: none;
+  border: 1px solid black;
+}
 
-  <!-- Игровое поле -->
-  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
+#stats {
+  margin-top: 20px;
+  font-size: 18px;
+}
 
-  <!-- Пост-игровые опции -->
-  <div id="postGameOptions" style="display: none;">
-    <button id="restartGameButton">Начать заново</button>
-    <button id="sendResultButtonPostGame">Отправить результат</button>
-  </div>
-
-  <!-- Статистика -->
-  <div id="stats"></div>
-
-  <script src="game.js"></script>
-  <script src="telegram.js"></script>
-</body>
-</html>
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
