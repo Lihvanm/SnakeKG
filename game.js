@@ -24,6 +24,35 @@ function initGame() {
   lastSegmentTime = Date.now();
 }
 
+// Генерация пути змейки
+function generateSnakePath() {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
+  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5]; // Количество сегментов на каждый круг
+
+  for (let i = 0; i < segmentsPerCircle.length; i++) {
+    const segments = segmentsPerCircle[i];
+    const angleStep = (2 * Math.PI) / segments;
+
+    for (let j = 0; j < segments; j++) {
+      const angle = j * angleStep;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      snakePath.push({ x: x, y: y });
+    }
+
+    radius -= gridSize; // Уменьшаем радиус для следующего круга
+  }
+
+  // Добавляем финальные шаги к центру
+  for (let i = 0; i < 5; i++) {
+    const x = centerX + (radius - i * gridSize) * Math.cos(0);
+    const y = centerY + (radius - i * gridSize) * Math.sin(0);
+    snakePath.push({ x: x, y: y });
+  }
+}
+
 // Обновление игры
 function update() {
   if (!isLoggedIn || isGameOver) return;
