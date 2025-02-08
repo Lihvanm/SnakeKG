@@ -1,4 +1,3 @@
-// Авторизация
 document.getElementById("loginButton").addEventListener("click", handleLogin);
 document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
 document.getElementById("allianceInput").addEventListener("keydown", handleEnterKey);
