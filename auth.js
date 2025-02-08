@@ -12,9 +12,7 @@ function handleLogin() {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
-    document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
-    document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
     loadStats();
     updateStatsUI(nickname, alliance, serverNumber);
   } else {
@@ -36,4 +34,39 @@ function handleEnterKey(event) {
       handleLogin(); // Если это последнее поле, выполняем вход
     }
   }
+}
+
+// Выбор фракции
+document.querySelectorAll(".faction-selection button").forEach(button => {
+  button.addEventListener("click", () => {
+    const faction = button.getAttribute("data-faction");
+    switch (faction) {
+      case "fire":
+        currentBulletColor = "red";
+        break;
+      case "ice":
+        currentBulletColor = "blue";
+        break;
+      case "archer":
+        currentBulletColor = "yellow";
+        break;
+      case "goblin":
+        currentBulletColor = "green";
+        break;
+    }
+    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
+    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
+  });
+});
+
+// Обновление интерфейса статистики
+function updateStatsUI(nickname, alliance, serverNumber) {
+  const statsDiv = document.getElementById("stats");
+  statsDiv.innerHTML = `
+    Ник: ${nickname}
+    Альянс: ${alliance}
+    Сервер: №${serverNumber}
+    Текущий счет: ${score}
+    Рекорд: ${highScore}
+  `;
 }
