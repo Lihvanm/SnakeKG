@@ -1,5 +1,4 @@
 // auth.js
-
 // Авторизация
 document.getElementById("loginButton").addEventListener("click", handleLogin);
 document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
@@ -65,10 +64,10 @@ function updateStatsUI(nickname, alliance, serverNumber) {
   const statsDiv = document.getElementById("stats");
   statsDiv.innerHTML = `
     Ник: ${nickname}
-Альянс: ${alliance}
-Сервер: №${serverNumber}
-Текущий счет: ${score}
-Рекорд: ${highScore}
+    Альянс: ${alliance}
+    Сервер: №${serverNumber}
+    Текущий счет: ${score}
+    Рекорд: ${highScore}
   `;
 }
 
