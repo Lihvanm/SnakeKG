@@ -27,11 +27,11 @@ let currentSegmentIndex = 0;
 let lastSegmentTime = 0;
 
 function generateSnakePath() {
-  const startX = canvasSize - gridSize / 2; // Начальная точка (правый верхний угол)
-  const startY = gridSize / 2;
+  const gridSize = 71; // Размер ячейки (71 пиксель)
+  const canvasSize = 640; // Размер игрового поля (640x640 пикселей)
 
-  let x = startX;
-  let y = startY;
+  let x = canvasSize - gridSize / 2; // Начальная точка (правый верхний угол)
+  let y = gridSize / 2;
   let direction = "left"; // Начальное направление движения
   let steps = 8; // Количество шагов в текущем направлении
   let stepCount = 0; // Счетчик шагов
