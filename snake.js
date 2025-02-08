@@ -3,9 +3,10 @@ const ctx = canvas.getContext("2d");
 
 // Настройки игры
 const gridSize = 20; // Размер клетки
+const colors = ["red", "green", "blue", "yellow"]; // Цвета фрагментов змеи
 let snake = [];
-let food = null;
-let direction = { x: -1, y: 0 }; // Начальное направление (влево)
+let player = { x: canvas.width / 2, y: canvas.height / 2 }; // Игрок в центре
+let bullets = [];
 let score = 0;
 let highScore = 0;
 let isGameOver = false;
@@ -36,30 +37,16 @@ document.getElementById("startGameButton").addEventListener("click", () => {
 // Инициализация игры
 function initGame() {
   snake = [{ x: 20, y: 0 }]; // Начальная позиция змеи (правый верхний угол)
-  food = getRandomFoodPosition();
   direction = { x: -1, y: 0 }; // Начальное направление (влево)
+  bullets = [];
   score = 0;
   isGameOver = false;
-}
-
-// Генерация случайной позиции для еды
-function getRandomFoodPosition() {
-  return {
-    x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
-    y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
-  };
 }
 
 // Отрисовка змеи
 function drawSnake() {
   ctx.fillStyle = "lime";
   snake.forEach(segment => ctx.fillRect(segment.x, segment.y, gridSize, gridSize));
-}
-
-// Отрисовка еды
-function drawFood() {
-  ctx.fillStyle = "red";
-  ctx.fillRect(food.x, food.y, gridSize, gridSize);
 }
 
 // Движение змеи
@@ -82,13 +69,8 @@ function moveSnake() {
   // Добавление новой головы
   snake.unshift(head);
 
-  // Проверка на поедание еды
-  if (head.x === food.x && head.y === food.y) {
-    score++;
-    food = getRandomFoodPosition();
-  } else {
-    snake.pop(); // Убираем хвост, если еда не съедена
-  }
+  // Автоматический рост каждые 3 секунды
+  setTimeout(() => snake.push({ x: -gridSize, y: -gridSize }), 3000);
 }
 
 // Обновление направления змеи
@@ -104,6 +86,60 @@ function updateDirection() {
     else if (direction.x === 1) direction = { x: 0, y: -1 }; // Вверх
     else if (direction.y === -1) direction = { x: -1, y: 0 }; // Влево
   }
+}
+
+// Отрисовка игрока
+function drawPlayer() {
+  ctx.fillStyle = "white";
+  ctx.fillRect(player.x, player.y, gridSize, gridSize);
+}
+
+// Стрельба
+function shootBullet(direction) {
+  const bullet = {
+    x: player.x,
+    y: player.y,
+    dx: direction.x,
+    dy: direction.y,
+    color: colors[Math.floor(Math.random() * colors.length)]
+  };
+  bullets.push(bullet);
+}
+
+// Отрисовка снарядов
+function drawBullets() {
+  bullets.forEach((bullet, index) => {
+    ctx.fillStyle = bullet.color;
+    ctx.fillRect(bullet.x, bullet.y, gridSize / 2, gridSize / 2);
+
+    // Перемещение снаряда
+    bullet.x += bullet.dx * 5;
+    bullet.y += bullet.dy * 5;
+
+    // Проверка столкновений
+    snake.forEach((segment, segIndex) => {
+      if (
+        bullet.x < segment.x + gridSize &&
+        bullet.x + gridSize / 2 > segment.x &&
+        bullet.y < segment.y + gridSize &&
+        bullet.y + gridSize / 2 > segment.y
+      ) {
+        snake.splice(segIndex, 1); // Уничтожение фрагмента
+        bullets.splice(index, 1); // Удаление снаряда
+        score++;
+      }
+    });
+
+    // Удаление снаряда за пределами экрана
+    if (
+      bullet.x < 0 ||
+      bullet.x > canvas.width ||
+      bullet.y < 0 ||
+      bullet.y > canvas.height
+    ) {
+      bullets.splice(index, 1);
+    }
+  });
 }
 
 // Отрисовка статистики
@@ -132,8 +168,37 @@ function update() {
   updateDirection();
   moveSnake();
   drawSnake();
-  drawFood();
+  drawPlayer();
+  drawBullets();
   drawStats();
 
   requestAnimationFrame(update);
 }
+
+// Управление
+document.addEventListener("keydown", event => {
+  const directions = {
+    ArrowUp: { x: 0, y: -1 },
+    ArrowDown: { x: 0, y: 1 },
+    ArrowLeft: { x: -1, y: 0 },
+    ArrowRight: { x: 1, y: 0 }
+  };
+
+  if (directions[event.key]) {
+    shootBullet(directions[event.key]);
+  }
+});
+
+// Сенсорное управление
+canvas.addEventListener("touchstart", event => {
+  const touch = event.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const direction = {
+    x: touch.clientX - rect.left - player.x,
+    y: touch.clientY - rect.top - player.y
+  };
+  const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+  direction.x /= length;
+  direction.y /= length;
+  shootBullet(direction);
+});
