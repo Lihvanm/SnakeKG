@@ -1,22 +1,21 @@
-// game.js
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 // Настройки игры
-const gridSize = 71; // Размер ячейки (71 пиксель)
-const canvasSize = 640; // Размер игрового поля (640x640 пикселей)
-const colors = ["red", "green", "blue", "yellow"]; // Цвета фрагментов змеи
+const gridSize = 71; // Размер клетки
+const colors = ["red", "green", "blue", "yellow"];
 let snake = [];
-let player = { x: canvas.width / 2, y: canvas.height / 2 }; // Игрок в центре
+let player = { x: canvas.width / 2, y: canvas.height / 2 };
 let bullets = [];
 let score = 0;
 let highScore = 0;
 let isGameOver = false;
+let isLoggedIn = false;
 
 // Переменные для управления выстрелом
-let isAiming = false; // Флаг для наведения цели
-let aimDirection = { x: 0, y: 0 }; // Направление прицеливания
-let currentBulletColor = "red"; // Цвет снаряда по умолчанию
+let isAiming = false;
+let aimDirection = { x: 0, y: 0 };
+let currentBulletColor = "red";
 
 // Инициализация игры
 function initGame() {
@@ -35,42 +34,31 @@ let currentSegmentIndex = 0;
 let lastSegmentTime = 0;
 
 function generateSnakePath() {
-  let x = canvasSize - gridSize / 2; // Начальная точка (правый верхний угол)
-  let y = gridSize / 2;
-  let direction = "left"; // Начальное направление движения
-  let steps = 8; // Количество шагов в текущем направлении
-  let stepCount = 0; // Счетчик шагов
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize;
+  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5];
 
-  while (snakePath.length < 81) {
-    snakePath.push({ x: x, y: y });
-    if (direction === "left") {
-      x -= gridSize;
-    } else if (direction === "down") {
-      y += gridSize;
-    } else if (direction === "right") {
-      x += gridSize;
-    } else if (direction === "up") {
-      y -= gridSize;
+  for (let i = 0; i < segmentsPerCircle.length; i++) {
+    const segments = segmentsPerCircle[i];
+    const angleStep = (2 * Math.PI) / segments;
+    for (let j = 0; j < segments; j++) {
+      const angle = j * angleStep;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      snakePath.push({ x, y });
     }
-    stepCount++;
-    if (stepCount === steps) {
-      stepCount = 0;
-      if (direction === "left") {
-        direction = "down";
-      } else if (direction === "down") {
-        direction = "right";
-        steps--; // Уменьшаем количество шагов для следующего круга
-      } else if (direction === "right") {
-        direction = "up";
-      } else if (direction === "up") {
-        direction = "left";
-        steps--; // Уменьшаем количество шагов для следующего круга
-      }
-    }
+    radius -= gridSize;
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const x = centerX + (radius - i * gridSize) * Math.cos(0);
+    const y = centerY + (radius - i * gridSize) * Math.sin(0);
+    snakePath.push({ x, y });
   }
 }
 
-// Движение змейки
+// Движение змеи
 function moveSnake() {
   const currentTime = Date.now();
   if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
@@ -79,18 +67,18 @@ function moveSnake() {
     currentSegmentIndex++;
     lastSegmentTime = currentTime;
   }
+
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
     showPostGameOptions();
-    return;
   }
 }
 
-// Отрисовка змейки
+// Отрисовка змеи
 function drawSnake() {
-  snake.forEach((segment, index) => {
+  snake.forEach(segment => {
     ctx.beginPath();
-    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2); // Рисуем круглые сегменты
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
@@ -118,100 +106,6 @@ function drawAimLine() {
   }
 }
 
-// Стрельба
-let lastShotTime = 0; // Время последнего выстрела
-function shootBullet(direction) {
-  const bullet = {
-    x: player.x,
-    y: player.y,
-    dx: direction.x,
-    dy: direction.y,
-    color: currentBulletColor
-  };
-  bullets.push(bullet);
-}
-
-// Отрисовка снарядов
-function drawBullets() {
-  bullets.forEach((bullet, index) => {
-    ctx.fillStyle = bullet.color;
-    ctx.fillRect(bullet.x, bullet.y, gridSize / 2, gridSize / 2);
-
-    // Перемещение снаряда
-    bullet.x += bullet.dx * 5;
-    bullet.y += bullet.dy * 5;
-
-    // Проверка столкновений
-    snake.forEach((segment, segIndex) => {
-      if (
-        bullet.x < segment.x + gridSize &&
-        bullet.x + gridSize / 2 > segment.x &&
-        bullet.y < segment.y + gridSize &&
-        bullet.y + gridSize / 2 > segment.y
-      ) {
-        if (bullet.color === segment.color) {
-          segment.color = getWeakColor(segment.color);
-        } else if (isStrongerColor(bullet.color, segment.color)) {
-          snake.splice(segIndex, 1);
-          score++;
-          rollbackSnake();
-        } else {
-          segment.color = bullet.color;
-        }
-        bullets.splice(index, 1); // Удаление снаряда
-      }
-    });
-
-    // Удаление снаряда за пределами экрана
-    if (
-      bullet.x < 0 ||
-      bullet.x > canvas.width ||
-      bullet.y < 0 ||
-      bullet.y > canvas.height
-    ) {
-      bullets.splice(index, 1);
-    }
-  });
-}
-
-// Получение слабого цвета
-function getWeakColor(color) {
-  const colorOrder = ["red", "yellow", "green", "blue"];
-  const currentIndex = colorOrder.indexOf(color);
-  return colorOrder[(currentIndex + 1) % colorOrder.length];
-}
-
-// Проверка силы цвета (синий > красный > желтый > зеленый > синий)
-function isStrongerColor(attacker, target) {
-  const hierarchy = { blue: 'red', red: 'yellow', yellow: 'green', green: 'blue' };
-  return hierarchy[attacker] === target;
-}
-
-// Обновление змейки при откате головы
-function rollbackSnake() {
-  if (snake.length > 0) {
-    snake.pop();
-    currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
-  }
-}
-
-// Отрисовка статистики
-function drawStats() {
-  const statsDiv = document.getElementById("stats");
-  statsDiv.innerHTML = `Рейтинг: ${score} | Рекорд: ${highScore}`;
-}
-
-// Сохранение статистики в localStorage
-function saveStats() {
-  highScore = Math.max(highScore, score);
-  localStorage.setItem("highScore", highScore);
-}
-
-// Загрузка статистики из localStorage
-function loadStats() {
-  highScore = parseInt(localStorage.getItem("highScore")) || 0;
-}
-
 // Обновление игры
 function update() {
   if (!isLoggedIn || isGameOver) return;
@@ -220,16 +114,16 @@ function update() {
   drawSnake();
   drawPlayer();
   drawBullets();
-  drawAimLine(); // Отрисовка направления выстрела
-  drawStats();
+  drawAimLine();
   requestAnimationFrame(update);
 }
 
 // Управление мышью или сенсором
-canvas.addEventListener("mousedown", (event) => {
-  isAiming = true;
-});
-canvas.addEventListener("mousemove", (event) => {
+canvas.addEventListener("mousedown", () => isAiming = true);
+canvas.addEventListener("mousemove", handleMouseMove);
+canvas.addEventListener("mouseup", handleMouseUp);
+
+function handleMouseMove(event) {
   if (isAiming) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -239,58 +133,18 @@ canvas.addEventListener("mousemove", (event) => {
     const length = Math.sqrt(dx * dx + dy * dy);
     aimDirection = { x: dx / length, y: dy / length };
   }
-});
-canvas.addEventListener("mouseup", () => {
-  const currentTime = Date.now();
-  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
-    shootBullet(aimDirection);
-    isAiming = false;
-    lastShotTime = currentTime;
-  }
-});
+}
 
-// Управление сенсором
-canvas.addEventListener("touchstart", (event) => {
-  isAiming = true;
-});
-canvas.addEventListener("touchmove", (event) => {
-  if (isAiming) {
-    const touch = event.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const touchX = touch.clientX - rect.left;
-    const touchY = touch.clientY - rect.top;
-    const dx = touchX - (player.x + gridSize / 2);
-    const dy = touchY - (player.y + gridSize / 2);
-    const length = Math.sqrt(dx * dx + dy * dy);
-    aimDirection = { x: dx / length, y: dy / length };
-  }
-});
-canvas.addEventListener("touchend", () => {
+function handleMouseUp() {
   const currentTime = Date.now();
-  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
+  if (isAiming && currentTime - lastShotTime >= 500) {
     shootBullet(aimDirection);
     isAiming = false;
     lastShotTime = currentTime;
   }
-});
+}
 
 // Показать пост-игровые опции
 function showPostGameOptions() {
-  document.getElementById("postGameOptions").style.display = "flex"; // Показываем кнопки "Начать заново" и "Отправить результат"
-  setTimeout(() => {
-    const nickname = document.getElementById("nicknameInput").value.trim();
-    const alliance = document.getElementById("allianceInput").value.trim();
-    const serverNumber = document.getElementById("serverInput").value.trim();
-    sendTelegramMessage(nickname, alliance, serverNumber, score);
-    saveStats();
-  }, 60000); // 60 секунд (1 минута)
+  document.getElementById("postGameOptions").style.display = "flex";
 }
-
-// Начало игры
-document.getElementById("startGameButton").addEventListener("click", () => {
-  canvas.style.display = "block"; // Показываем холст
-  initGame();
-  update();
-  document.getElementById("startGameButton").style.display = "none"; // Скрываем кнопку
-  document.getElementById("sendResultButton").style.display = "none"; // Скрываем кнопку отправки результата
-});
