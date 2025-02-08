@@ -13,6 +13,33 @@ let highScore = 0;
 let isGameOver = false;
 let isLoggedIn = false;
 
+// Инициализация игры
+function initGame() {
+  snake = [];
+  generateSnakePath();
+  bullets = [];
+  score = 0;
+  isGameOver = false;
+  currentSegmentIndex = 0;
+  lastSegmentTime = Date.now();
+}
+
+// Обновление игры
+function update() {
+  if (!isLoggedIn || isGameOver) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  moveSnake();
+  drawSnake();
+  drawPlayer();
+  drawBullets();
+  drawAimLine();
+  drawStats();
+
+  requestAnimationFrame(update);
+}
+
 // Переменные для управления выстрелом
 let isAiming = false; // Флаг для наведения цели
 let aimDirection = { x: 0, y: 0 }; // Направление прицеливания
