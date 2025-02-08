@@ -12,17 +12,27 @@ function handleLogin() {
   if (nickname && alliance && serverNumber) {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
+
+    // Скрываем форму авторизации
     document.getElementById("authForm").style.display = "none";
-    document.getElementById("gameButtons").style.display = "block";
+
+    // Показываем выбор фракции
     document.getElementById("factionSelection").style.display = "flex";
+
+    // Скрываем видео
     document.getElementById("videoContainer").style.display = "none";
 
+    // Показываем кнопку "Начать игру"
+    document.getElementById("startGameButton").style.display = "block";
+
+    // Загружаем статистику
     if (typeof loadStats === "function") {
       loadStats();
     } else {
       console.error("Функция loadStats не определена!");
     }
 
+    // Обновляем интерфейс статистики
     updateStatsUI(nickname, alliance, serverNumber);
   } else {
     alert("Пожалуйста, заполните все поля.");
