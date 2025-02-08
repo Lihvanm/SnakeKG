@@ -85,11 +85,11 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
 function updateStatsUI(nickname, alliance, serverNumber) {
   const statsDiv = document.getElementById("stats");
   statsDiv.innerHTML = `
-    <p>Ник: ${nickname}</p>
-    <p>Альянс: ${alliance}</p>
-    <p>Сервер: №${serverNumber}</p>
-    <p>Текущий счет: ${score}</p>
-    <p>Рекорд: ${highScore}</p>
+    Ник: ${nickname}
+Альянс: ${alliance}
+Сервер: №${serverNumber}
+Текущий счет: ${score}
+Рекорд: ${highScore}
   `;
 }
 
@@ -166,7 +166,8 @@ function moveSnake() {
 
   // Добавляем новый сегмент каждую секунду
   if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
-    snake.unshift({ ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] });
+    const newSegment = { ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] };
+    snake.unshift(newSegment);
     currentSegmentIndex++;
     lastSegmentTime = currentTime;
   }
@@ -244,13 +245,22 @@ function drawBullets() {
         bullet.y + gridSize / 2 > segment.y
       ) {
         if (bullet.color === segment.color) {
-          snake.splice(segIndex, 1); // Уничтожение фрагмента
-          bullets.splice(index, 1); // Удаление снаряда
+          // Если цвета совпадают, превращаем звено в слабый цвет
+          segment.color = getWeakColor(segment.color);
+        } else if (isStrongerColor(bullet.color, segment.color)) {
+          // Если снаряд сильнее, удаляем звено
+          snake.splice(segIndex, 1);
           score++;
+
+          // Откат головы змеи на одно звено назад
+          if (snake.length > 0) {
+            rollbackSnake();
+          }
         } else {
-          segment.color = getWeakColor(segment.color); // Изменение цвета фрагмента
-          bullets.splice(index, 1); // Удаление снаряда
+          // Если снаряд слабее, изменяем цвет звена на цвет снаряда
+          segment.color = bullet.color;
         }
+        bullets.splice(index, 1); // Удаление снаряда
       }
     });
 
@@ -271,6 +281,21 @@ function getWeakColor(color) {
   const colorOrder = ["red", "yellow", "green", "blue"];
   const currentIndex = colorOrder.indexOf(color);
   return colorOrder[(currentIndex + 1) % colorOrder.length];
+}
+
+// Проверка силы цвета (синий > красный > желтый > зеленый > синий)
+function isStrongerColor(attacker, target) {
+  const hierarchy = { blue: 'red', red: 'yellow', yellow: 'green', green: 'blue' };
+  return hierarchy[attacker] === target;
+}
+
+// Обновление змейки при откате головы
+function rollbackSnake() {
+  if (snake.length > 0) {
+    // Удаляем последний сегмент и уменьшаем индекс пути
+    snake.pop();
+    currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
+  }
 }
 
 // Отрисовка статистики
@@ -385,4 +410,4 @@ document.getElementById("sendResultButtonPostGame").addEventListener("click", ()
   saveStats();
   document.getElementById("postGameOptions").style.display = "none"; // Скрываем пост-игровые опции
   document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
-});
+                                                                     
