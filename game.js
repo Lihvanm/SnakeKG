@@ -23,94 +23,15 @@ let currentBulletColor = "red"; // Цвет снаряда по умолчани
 const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE"; // Токен вашего бота
 const TELEGRAM_CHAT_ID = "-1002382138419"; // ID группы Snake_KG
 
-// Авторизация
-document.getElementById("loginButton").addEventListener("click", handleLogin);
-document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
-document.getElementById("allianceInput").addEventListener("keydown", handleEnterKey);
-document.getElementById("serverInput").addEventListener("keydown", handleEnterKey);
-
-function handleLogin() {
-  const nickname = document.getElementById("nicknameInput").value.trim();
-  const alliance = document.getElementById("allianceInput").value.trim();
-  const serverNumber = document.getElementById("serverInput").value.trim();
-  if (nickname && alliance && serverNumber) {
-    isLoggedIn = true;
-    alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
-    document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
-    document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
-    document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
-    document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
-    loadStats();
-    updateStatsUI(nickname, alliance, serverNumber);
-  } else {
-    alert("Пожалуйста, заполните все поля.");
-  }
+// Загрузка статистики из localStorage
+function loadStats() {
+  highScore = parseInt(localStorage.getItem("highScore")) || 0;
 }
 
-function handleEnterKey(event) {
-  if (event.key === "Enter") {
-    const inputs = [
-      document.getElementById("nicknameInput"),
-      document.getElementById("allianceInput"),
-      document.getElementById("serverInput")
-    ];
-    const currentIndex = inputs.indexOf(event.target);
-    if (currentIndex < inputs.length - 1) {
-      inputs[currentIndex + 1].focus(); // Переходим к следующему полю
-    } else {
-      handleLogin(); // Если это последнее поле, выполняем вход
-    }
-  }
-}
-
-// Выбор фракции
-document.querySelectorAll(".faction-selection button").forEach(button => {
-  button.addEventListener("click", () => {
-    const faction = button.getAttribute("data-faction");
-    switch (faction) {
-      case "fire":
-        currentBulletColor = "red";
-        break;
-      case "ice":
-        currentBulletColor = "blue";
-        break;
-      case "archer":
-        currentBulletColor = "yellow";
-        break;
-      case "goblin":
-        currentBulletColor = "green";
-        break;
-    }
-    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
-    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
-    document.getElementById("startGameButton").classList.add(currentBulletColor); // Добавляем цвет кнопке
-  });
-});
-
-// Обновление интерфейса статистики
-function updateStatsUI(nickname, alliance, serverNumber) {
-  const statsDiv = document.getElementById("stats");
-  statsDiv.innerHTML = `
-    Ник: ${nickname}
-Альянс: ${alliance}
-Сервер: №${serverNumber}
-Текущий счет: ${score}
-Рекорд: ${highScore}
-  `;
-}
-
-// Отправка сообщения в Telegram
-async function sendTelegramMessage(nickname, alliance, serverNumber, bestScore) {
-  const message = `🏆 Результаты игры:\nНик: ${nickname}\nАльянс: ${alliance}\nСервер: №${serverNumber}\nНаилучший счет: ${bestScore}`;
-  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
-  try {
-    await fetch(url);
-    console.log("Сообщение отправлено в Telegram!");
-    alert("Результат отправлен в группу!");
-  } catch (error) {
-    console.error("Ошибка при отправке сообщения в Telegram:", error);
-    alert("Ошибка при отправке результата. Попробуйте еще раз.");
-  }
+// Сохранение статистики в localStorage
+function saveStats() {
+  highScore = Math.max(highScore, score);
+  localStorage.setItem("highScore", highScore);
 }
 
 // Инициализация игры
@@ -135,8 +56,10 @@ function generateSnakePath() {
   let direction = "left"; // Начальное направление движения
   let steps = 8; // Количество шагов в текущем направлении
   let stepCount = 0; // Счетчик шагов
+
   while (snakePath.length < 81) {
     snakePath.push({ x: x, y: y });
+
     if (direction === "left") {
       x -= gridSize;
     } else if (direction === "down") {
@@ -146,6 +69,7 @@ function generateSnakePath() {
     } else if (direction === "up") {
       y -= gridSize;
     }
+
     stepCount++;
     if (stepCount === steps) {
       stepCount = 0;
@@ -167,12 +91,16 @@ function generateSnakePath() {
 // Движение змейки
 function moveSnake() {
   const currentTime = Date.now();
+
+  // Добавляем новый сегмент каждую секунду
   if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
     const newSegment = { ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] };
     snake.unshift(newSegment);
     currentSegmentIndex++;
     lastSegmentTime = currentTime;
   }
+
+  // Если змея достигла конца пути
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
     showPostGameOptions();
@@ -231,9 +159,11 @@ function drawBullets() {
   bullets.forEach((bullet, index) => {
     ctx.fillStyle = bullet.color;
     ctx.fillRect(bullet.x, bullet.y, gridSize / 2, gridSize / 2);
+
     // Перемещение снаряда
     bullet.x += bullet.dx * 5;
     bullet.y += bullet.dy * 5;
+
     // Проверка столкновений
     snake.forEach((segment, segIndex) => {
       if (
@@ -254,6 +184,7 @@ function drawBullets() {
         bullets.splice(index, 1); // Удаление снаряда
       }
     });
+
     // Удаление снаряда за пределами экрана
     if (
       bullet.x < 0 ||
@@ -293,20 +224,10 @@ function drawStats() {
   statsDiv.innerHTML = `Рейтинг: ${score} | Рекорд: ${highScore}`;
 }
 
-// Сохранение статистики в localStorage
-function saveStats() {
-  highScore = Math.max(highScore, score);
-  localStorage.setItem("highScore", highScore);
-}
-
-// Загрузка статистики из localStorage
-function loadStats() {
-  highScore = parseInt(localStorage.getItem("highScore")) || 0;
-}
-
 // Обновление игры
 function update() {
   if (!isLoggedIn || isGameOver) return;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   moveSnake();
   drawSnake();
@@ -321,6 +242,7 @@ function update() {
 canvas.addEventListener("mousedown", (event) => {
   isAiming = true;
 });
+
 canvas.addEventListener("mousemove", (event) => {
   if (isAiming) {
     const rect = canvas.getBoundingClientRect();
@@ -332,6 +254,7 @@ canvas.addEventListener("mousemove", (event) => {
     aimDirection = { x: dx / length, y: dy / length };
   }
 });
+
 canvas.addEventListener("mouseup", () => {
   const currentTime = Date.now();
   if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
@@ -345,6 +268,7 @@ canvas.addEventListener("mouseup", () => {
 canvas.addEventListener("touchstart", (event) => {
   isAiming = true;
 });
+
 canvas.addEventListener("touchmove", (event) => {
   if (isAiming) {
     const touch = event.touches[0];
@@ -357,6 +281,7 @@ canvas.addEventListener("touchmove", (event) => {
     aimDirection = { x: dx / length, y: dy / length };
   }
 });
+
 canvas.addEventListener("touchend", () => {
   const currentTime = Date.now();
   if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
@@ -373,4 +298,16 @@ function showPostGameOptions() {
     const nickname = document.getElementById("nicknameInput").value.trim();
     const alliance = document.getElementById("allianceInput").value.trim();
     const serverNumber = document.getElementById("serverInput").value.trim();
-    sendTelegram
+    sendTelegramMessage(nickname, alliance, serverNumber, score);
+    saveStats();
+  }, 60000); // 60 секунд (1 минута)
+}
+
+// Начало игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+  canvas.style.display = "block"; // Показываем холст
+  initGame();
+  update();
+  document.getElementById("startGameButton").style.display = "none"; // Скрываем кнопку
+  document.getElementById("sendResultButton").style.display = "none"; // Скрываем кнопку отправки результата
+});
