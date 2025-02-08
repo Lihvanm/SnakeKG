@@ -10,22 +10,27 @@ let bullets = [];
 let score = 0;
 let level = 1;
 let isGameOver = false;
-
-// Авторизация
-let alliance = "";
-let serverNumber = "";
 let isLoggedIn = false;
 
+// Авторизация
 document.getElementById("loginButton").addEventListener("click", () => {
-  alliance = document.getElementById("allianceInput").value;
-  serverNumber = document.getElementById("serverInput").value;
+  const alliance = document.getElementById("allianceInput").value;
+  const serverNumber = document.getElementById("serverInput").value;
   if (alliance && serverNumber) {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${alliance}! Сервер №${serverNumber}`);
-    initGame();
+    document.getElementById("loginButton").style.display = "none";
+    document.getElementById("startGameButton").style.display = "block";
   } else {
     alert("Пожалуйста, заполните все поля.");
   }
+});
+
+// Начало игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+  initGame();
+  update();
+  document.getElementById("startGameButton").style.display = "none";
 });
 
 // Инициализация игры
@@ -33,7 +38,7 @@ function initGame() {
   snake = [];
   const startX = canvas.width - gridSize; // Правый верхний угол
   const startY = 0;
-  const segments = 20; // Количество фрагментов змеи
+  const segments = 5; // Количество фрагментов змеи
   for (let i = 0; i < segments; i++) {
     const angle = (i / segments) * 2 * Math.PI;
     const radius = canvas.width / 2 - gridSize;
@@ -164,8 +169,16 @@ document.addEventListener("keydown", event => {
   }
 });
 
-// Инициализация игры
-if (isLoggedIn) {
-  initGame();
-  update();
-}
+// Сенсорное управление
+canvas.addEventListener("touchstart", event => {
+  const touch = event.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const direction = {
+    x: touch.clientX - rect.left - player.x,
+    y: touch.clientY - rect.top - player.y
+  };
+  const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+  direction.x /= length;
+  direction.y /= length;
+  shootBullet(direction);
+});
