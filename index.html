@@ -4,21 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Змейка</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-    #authForm, #factionSelection, #postGameOptions {
-      margin-top: 20px;
-    }
-    #gameCanvas {
-      display: none;
-      border: 1px solid black;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Форма авторизации -->
   <div id="authForm">
     <input type="text" id="nicknameInput" placeholder="Никнейм">
     <input type="text" id="allianceInput" placeholder="Альянс">
@@ -26,6 +15,7 @@
     <button id="loginButton">Войти</button>
   </div>
 
+  <!-- Выбор фракции -->
   <div id="factionSelection" style="display: none;">
     <button data-faction="fire">Огонь</button>
     <button data-faction="ice">Лед</button>
@@ -33,10 +23,17 @@
     <button data-faction="goblin">Гоблин</button>
   </div>
 
-  <button id="startGameButton" style="display: none;">Начать игру</button>
-  <canvas id="gameCanvas" width="640" height="640"></canvas>
+  <!-- Игровая область -->
+  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
 
+  <!-- Статистика -->
   <div id="stats"></div>
+
+  <!-- Пост-игровые опции -->
+  <div id="postGameOptions" style="display: none;">
+    <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
+  </div>
 
   <script src="auth.js"></script>
   <script src="game.js"></script>
