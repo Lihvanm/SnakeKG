@@ -46,6 +46,10 @@
       width: 300px;
       height: auto;
     }
+    .game-buttons {
+      display: none; /* Кнопки скрыты до авторизации */
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -55,6 +59,10 @@
     <input type="text" id="serverInput" placeholder="Введите № сервера">
     <button id="loginButton">Войти</button>
   </div>
+  <div class="game-buttons" id="gameButtons">
+    <button id="sendResultButton" style="display: none;">Отправить результат</button>
+    <button id="startGameButton">Начать игру</button>
+  </div>
   <div class="stats" id="stats"></div>
   <div class="video-container" id="videoContainer">
     <video controls autoplay loop muted>
@@ -63,7 +71,6 @@
     </video>
   </div>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <button id="startGameButton" style="display: none;">Начать игру</button>
   <script src="snake.js"></script>
 </body>
 </html>
