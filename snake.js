@@ -34,7 +34,7 @@ document.getElementById("loginButton").addEventListener("click", () => {
 
 // Начало игры
 document.getElementById("startGameButton").addEventListener("click", () => {
-  document.getElementById("gifContainer").style.display = "none"; // Скрываем GIF
+  document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
   canvas.style.display = "block"; // Показываем холст
   initGame();
   update();
