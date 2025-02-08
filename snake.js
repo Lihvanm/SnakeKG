@@ -1,5 +1,8 @@
-coли
 // Логика змейки
+let snakePath = [];
+let currentSegmentIndex = 0;
+let lastSegmentTime = 0;
+
 function moveSnake() {
   const currentTime = Date.now();
 
