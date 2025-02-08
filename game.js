@@ -105,6 +105,15 @@ function update() {
   requestAnimationFrame(update);
 }
 
+// Начало игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+canvas.style.display = "block"; // Показываем холст
+document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
+initGame();
+update();
+document.getElementById("startGameButton").style.display = "none";
+});
+
 // Управление мышью или сенсором
 canvas.addEventListener("mousedown", () => isAiming = true);
 canvas.addEventListener("mousemove", handleMouseMove);
