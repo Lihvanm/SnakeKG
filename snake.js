@@ -51,18 +51,21 @@ function initGame() {
 
 // Отрисовка змеи
 function drawSnake() {
-  snake.forEach(segment => {
+  snake.forEach((segment, index) => {
+    ctx.beginPath();
+    ctx.arc(segment.x + gridSize / 2, segment.y + gridSize / 2, gridSize / 3, 0, Math.PI * 2); // Рисуем круглые сегменты
     ctx.fillStyle = segment.color;
-    ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+    ctx.fill();
+    ctx.closePath();
   });
 }
 
 // Движение змеи
 let angle = 0; // Угол для движения по кругу
+let radius = Math.max(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
 function moveSnake() {
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
-  const radius = Math.max(canvas.width, canvas.height) / 2 - gridSize; // Максимальный радиус
 
   // Вычисляем новую позицию головы змеи
   const headX = centerX + radius * Math.cos(angle);
@@ -71,11 +74,16 @@ function moveSnake() {
   // Добавляем новую голову
   snake.unshift({ x: headX, y: headY, color: colors[Math.floor(Math.random() * colors.length)] });
 
-  // Уменьшаем угол для движения по спирали
-  angle += 0.01; // Угол увеличивается медленно
+  // Уменьшаем радиус для сужения спирали
+  radius -= 0.05; // Медленное сужение
 
-  // Автоматический рост каждые 3 секунды
-  setTimeout(() => snake.push({ x: -gridSize, y: -gridSize }), 3000);
+  // Удаляем хвост, если змея слишком длинная
+  if (snake.length > 100) {
+    snake.pop();
+  }
+
+  // Увеличиваем угол для движения по спирали
+  angle += 0.02; // Угол увеличивается медленно
 }
 
 // Отрисовка игрока
