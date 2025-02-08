@@ -23,24 +23,27 @@ const TELEGRAM_CHAT_ID = "-1002382138419"; // ID группы Snake_KG
 
 // Авторизация
 document.getElementById("loginButton").addEventListener("click", () => {
+  const nickname = document.getElementById("nicknameInput").value;
   const alliance = document.getElementById("allianceInput").value;
   const serverNumber = document.getElementById("serverInput").value;
-  if (alliance && serverNumber) {
+
+  if (nickname && alliance && serverNumber) {
     isLoggedIn = true;
-    alert(`Добро пожаловать, ${alliance}! Сервер №${serverNumber}`);
+    alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
     document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     loadStats();
-    updateStatsUI(alliance, serverNumber);
+    updateStatsUI(nickname, alliance, serverNumber);
   } else {
     alert("Пожалуйста, заполните все поля.");
   }
 });
 
 // Обновление интерфейса статистики
-function updateStatsUI(alliance, serverNumber) {
+function updateStatsUI(nickname, alliance, serverNumber) {
   const statsDiv = document.getElementById("stats");
   statsDiv.innerHTML = `
+    <p>Ник: ${nickname}</p>
     <p>Альянс: ${alliance}</p>
     <p>Сервер: №${serverNumber}</p>
     <p>Текущий счет: ${score}</p>
@@ -49,8 +52,8 @@ function updateStatsUI(alliance, serverNumber) {
 }
 
 // Отправка сообщения в Telegram
-async function sendTelegramMessage(alliance, serverNumber, bestScore) {
-  const message = `🏆 Результаты игры:\nАльянс: ${alliance}\nСервер: №${serverNumber}\nНаилучший счет: ${bestScore}`;
+async function sendTelegramMessage(nickname, alliance, serverNumber, bestScore) {
+  const message = `🏆 Результаты игры:\nНик: ${nickname}\nАльянс: ${alliance}\nСервер: №${serverNumber}\nНаилучший счет: ${bestScore}`;
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
   try {
     await fetch(url);
@@ -75,51 +78,73 @@ document.getElementById("startGameButton").addEventListener("click", () => {
 // Инициализация игры
 function initGame() {
   snake = [];
-  for (let i = 0; i < 50; i++) {
-    snake.push({ x: canvas.width - gridSize - i * gridSize, y: 0, color: colors[Math.floor(Math.random() * colors.length)] });
-  }
+  generateSnakePath();
   bullets = [];
   score = 0;
   isGameOver = false;
+  currentSegmentIndex = 0;
+  lastSegmentTime = Date.now();
+}
+
+// Генерация пути змейки
+let snakePath = [];
+let currentSegmentIndex = 0;
+let lastSegmentTime = 0;
+
+function generateSnakePath() {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
+  let angleStep = Math.PI / 18; // Шаг угла для плавного движения
+  let segmentsPerCircle = 36; // Количество сегментов на один круг
+
+  while (radius > gridSize * 2) {
+    for (let i = 0; i < segmentsPerCircle; i++) {
+      const angle = i * angleStep;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      snakePath.push({ x: x, y: y });
+    }
+    radius -= gridSize; // Уменьшаем радиус для следующего круга
+  }
+
+  // Добавляем финальные шаги к центру
+  for (let i = 0; i < 10; i++) {
+    const x = centerX + (radius - i * gridSize) * Math.cos(0);
+    const y = centerY + (radius - i * gridSize) * Math.sin(0);
+    snakePath.push({ x: x, y: y });
+  }
+}
+
+// Движение змеи
+function moveSnake() {
+  const currentTime = Date.now();
+
+  // Добавляем новый сегмент каждую секунду
+  if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
+    snake.unshift({ ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] });
+    currentSegmentIndex++;
+    lastSegmentTime = currentTime;
+  }
+
+  // Если змейка достигла конца пути
+  if (currentSegmentIndex >= snakePath.length) {
+    isGameOver = true;
+    alert("Game Over! Your score: " + score);
+    document.getElementById("sendResultButton").style.display = "block";
+    return;
+  }
 }
 
 // Отрисовка змеи
 function drawSnake() {
   snake.forEach((segment, index) => {
     ctx.beginPath();
-    ctx.arc(segment.x + gridSize / 2, segment.y + gridSize / 2, gridSize / 3, 0, Math.PI * 2); // Рисуем круглые сегменты
+    ctx.arc(segment.x, segment.y, gridSize / 3, 0, Math.PI * 2); // Рисуем круглые сегменты
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
   });
-}
-
-// Движение змеи по прямоугольной спирали
-function moveSnake() {
-  const head = { ...snake[0] };
-
-  // Определяем направление движения
-  if (head.x > canvas.width / 2 && head.y === 0) {
-    head.x -= gridSize; // Движение влево
-  } else if (head.x === canvas.width / 2 && head.y < canvas.height / 2) {
-    head.y += gridSize; // Движение вниз
-  } else if (head.x < canvas.width && head.y === canvas.height / 2) {
-    head.x += gridSize; // Движение вправо
-  } else if (head.x === canvas.width && head.y > 0) {
-    head.y -= gridSize; // Движение вверх
-  }
-
-  // Если голова достигла центра
-  if (Math.abs(head.x - canvas.width / 2) <= gridSize && Math.abs(head.y - canvas.height / 2) <= gridSize) {
-    isGameOver = true;
-    alert("Game Over! Your score: " + score);
-    document.getElementById("sendResultButton").style.display = "block";
-    return;
-  }
-
-  // Обновляем позиции всех сегментов
-  snake.unshift(head);
-  snake.pop();
 }
 
 // Отрисовка игрока
@@ -144,6 +169,8 @@ function drawAimLine() {
 }
 
 // Стрельба
+let lastShotTime = 0; // Время последнего выстрела
+
 function shootBullet(direction) {
   const bullet = {
     x: player.x,
@@ -245,9 +272,11 @@ canvas.addEventListener("mousemove", (event) => {
   }
 });
 canvas.addEventListener("mouseup", () => {
-  if (isAiming) {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
     shootBullet(aimDirection);
     isAiming = false;
+    lastShotTime = currentTime;
   }
 });
 
@@ -268,17 +297,20 @@ canvas.addEventListener("touchmove", (event) => {
   }
 });
 canvas.addEventListener("touchend", () => {
-  if (isAiming) {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
     shootBullet(aimDirection);
     isAiming = false;
+    lastShotTime = currentTime;
   }
 });
 
 // Отправка результата
 document.getElementById("sendResultButton").addEventListener("click", () => {
+  const nickname = document.getElementById("nicknameInput").value;
   const alliance = document.getElementById("allianceInput").value;
   const serverNumber = document.getElementById("serverInput").value;
-  sendTelegramMessage(alliance, serverNumber, score);
+  sendTelegramMessage(nickname, alliance, serverNumber, score);
   saveStats();
   document.getElementById("sendResultButton").style.display = "none";
   document.getElementById("startGameButton").style.display = "block";
