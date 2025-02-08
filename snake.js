@@ -228,7 +228,7 @@ function shootBullet(direction) {
 
 // Отрисовка снарядов
 function drawBullets() {
-  bullets.forEach((bullet, index) => {
+  bullets.forEach((bullet, bulletIndex) => {
     ctx.fillStyle = bullet.color;
     ctx.fillRect(bullet.x, bullet.y, gridSize / 2, gridSize / 2);
 
@@ -236,31 +236,39 @@ function drawBullets() {
     bullet.x += bullet.dx * 5;
     bullet.y += bullet.dy * 5;
 
+    let bulletHit = false; // Флаг для отслеживания попадания пули
+
     // Проверка столкновений
-    snake.forEach((segment, segIndex) => {
+    snake.some((segment, segIndex) => {
       if (
         bullet.x < segment.x + gridSize &&
         bullet.x + gridSize / 2 > segment.x &&
         bullet.y < segment.y + gridSize &&
         bullet.y + gridSize / 2 > segment.y
       ) {
-        if (bullet.color === segment.color) {
-          // Если цвета совпадают, превращаем звено в слабый цвет
-          segment.color = getWeakColor(segment.color);
-        } else if (isStrongerColor(bullet.color, segment.color)) {
-          // Если снаряд сильнее, удаляем звено
-          snake.splice(segIndex, 1);
-          score++;
+        if (!bulletHit) { // Обрабатываем только первое попадание
+          if (bullet.color === segment.color) {
+            // Если цвета совпадают, превращаем звено в слабый цвет
+            segment.color = getWeakColor(segment.color);
+          } else if (isStrongerColor(bullet.color, segment.color)) {
+            // Если снаряд сильнее, удаляем звено
+            snake.splice(segIndex, 1);
+            score++;
 
-          // Откат головы змеи на одно звено назад
-          if (snake.length > 0) {
-            rollbackSnake();
+            // Откат головы змеи на одно звено назад
+            if (snake.length > 0) {
+              rollbackSnake();
+            }
+          } else {
+            // Если снаряд слабее, изменяем цвет звена на цвет снаряда
+            segment.color = bullet.color;
           }
-        } else {
-          // Если снаряд слабее, изменяем цвет звена на цвет снаряда
-          segment.color = bullet.color;
+
+          // Удаляем пулю после первого попадания
+          bullets.splice(bulletIndex, 1);
+          bulletHit = true; // Отмечаем, что пуля уже попала
         }
-        bullets.splice(index, 1); // Удаление снаряда
+        return bulletHit; // Прерываем цикл some, если пуля попала
       }
     });
 
@@ -271,22 +279,9 @@ function drawBullets() {
       bullet.y < 0 ||
       bullet.y > canvas.height
     ) {
-      bullets.splice(index, 1);
+      bullets.splice(bulletIndex, 1);
     }
   });
-}
-
-// Получение слабого цвета
-function getWeakColor(color) {
-  const colorOrder = ["red", "yellow", "green", "blue"];
-  const currentIndex = colorOrder.indexOf(color);
-  return colorOrder[(currentIndex + 1) % colorOrder.length];
-}
-
-// Проверка силы цвета (синий > красный > желтый > зеленый > синий)
-function isStrongerColor(attacker, target) {
-  const hierarchy = { blue: 'red', red: 'yellow', yellow: 'green', green: 'blue' };
-  return hierarchy[attacker] === target;
 }
 
 // Обновление змейки при откате головы
