@@ -1,11 +1,18 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Основные настройки
+// Конфигурация игры
 const GRID_SIZE = 71;
 const COLORS = ['red', 'green', 'blue', 'yellow'];
+const SNAKE_SPEED = 800; // ms между сегментами
+const BULLET_SPEED = 8;
+
+// Состояние игры
 let snake = [];
 let bullets = [];
+let snakePath = [];
+let currentSegmentIndex = 0;
+let lastSegmentTime = Date.now();
 let score = 0;
 let highScore = 0;
 let isGameOver = false;
@@ -20,49 +27,47 @@ function initGame() {
   bullets = [];
   score = 0;
   isGameOver = false;
+  currentSegmentIndex = 0;
   generateSnakePath();
 }
 
 // Генерация пути змейки
 function generateSnakePath() {
+  snakePath = [];
   const centerX = canvas.width/2;
   const centerY = canvas.height/2;
   let radius = Math.min(canvas.width, canvas.height)/2 - GRID_SIZE;
   const segments = [9, 8, 8, 7, 6, 6, 5];
 
-  snake = [];
   segments.forEach((count, i) => {
     const angleStep = (Math.PI*2)/count;
     for(let j = 0; j < count; j++) {
       const angle = angleStep * j;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      snake.push({
-        x: x,
-        y: y,
-        color: COLORS[Math.floor(Math.random()*COLORS.length)]
+      snakePath.push({
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle)
       });
     }
     radius -= GRID_SIZE;
   });
 }
 
-// Основной игровой цикл
-function gameLoop() {
-  if(!isLoggedIn || isGameOver) return;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Движение змейки
+function updateSnake() {
+  const now = Date.now();
   
-  // Отрисовка элементов
-  drawSnake();
-  drawBullets();
-  drawAim();
+  if(now - lastSegmentTime > SNAKE_SPEED && currentSegmentIndex < snakePath.length) {
+    snake.unshift({
+      x: snakePath[currentSegmentIndex].x,
+      y: snakePath[currentSegmentIndex].y,
+      color: COLORS[Math.floor(Math.random()*COLORS.length)]
+    });
+    currentSegmentIndex++;
+    lastSegmentTime = now;
+  }
   
-  // Обновление позиций
-  updateBullets();
-  checkCollisions();
-  
-  requestAnimationFrame(gameLoop);
+  // Ограничение длины змейки
+  if(snake.length > 50) snake.pop();
 }
 
 // Отрисовка змейки
@@ -72,6 +77,14 @@ function drawSnake() {
     ctx.beginPath();
     ctx.arc(segment.x, segment.y, GRID_SIZE/2, 0, Math.PI*2);
     ctx.fill();
+  });
+}
+
+// Логика пуль
+function updateBullets() {
+  bullets.forEach(bullet => {
+    bullet.x += bullet.dx * BULLET_SPEED;
+    bullet.y += bullet.dy * BULLET_SPEED;
   });
 }
 
@@ -85,7 +98,39 @@ function drawBullets() {
   });
 }
 
-// Логика стрельбы
+// Проверка столкновений
+function checkCollisions() {
+  bullets.forEach((bullet, bIndex) => {
+    snake.forEach((segment, sIndex) => {
+      const dx = bullet.x - segment.x;
+      const dy = bullet.y - segment.y;
+      const distance = Math.sqrt(dx*dx + dy*dy);
+      
+      if(distance < GRID_SIZE && bullet.color === segment.color) {
+        snake.splice(sIndex, 1);
+        score += 100;
+        bullets.splice(bIndex, 1);
+        currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
+      }
+    });
+  });
+}
+
+// Система прицеливания
+function drawAim() {
+  if(!isAiming) return;
+  
+  ctx.strokeStyle = currentBulletColor;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width/2, canvas.height/2);
+  ctx.lineTo(
+    canvas.width/2 + aimDirection.x * 100,
+    canvas.height/2 + aimDirection.y * 100
+  );
+  ctx.stroke();
+}
+
+// Управление
 canvas.addEventListener('mousedown', startAim);
 canvas.addEventListener('mousemove', updateAim);
 canvas.addEventListener('mouseup', shoot);
@@ -106,10 +151,8 @@ function updateAim(e) {
   const dy = mouseY - canvas.height/2;
   const length = Math.sqrt(dx*dx + dy*dy);
   
-  aimDirection = {
-    x: dx/length,
-    y: dy/length
-  };
+  aimDirection.x = dx/length;
+  aimDirection.y = dy/length;
 }
 
 function shoot() {
@@ -118,65 +161,30 @@ function shoot() {
   bullets.push({
     x: canvas.width/2,
     y: canvas.height/2,
-    dx: aimDirection.x * 8,
-    dy: aimDirection.y * 8,
+    dx: aimDirection.x,
+    dy: aimDirection.y,
     color: currentBulletColor
   });
   
   isAiming = false;
 }
 
-// Обновление позиций пуль
-function updateBullets() {
-  bullets.forEach(bullet => {
-    bullet.x += bullet.dx;
-    bullet.y += bullet.dy;
-  });
-}
+// Игровой цикл
+function gameLoop() {
+  if(!isLoggedIn || isGameOver) return;
 
-// Проверка столкновений
-function checkCollisions() {
-  bullets.forEach((bullet, bIndex) => {
-    snake.forEach((segment, sIndex) => {
-      const dx = bullet.x - segment.x;
-      const dy = bullet.y - segment.y;
-      const distance = Math.sqrt(dx*dx + dy*dy);
-      
-      if(distance < GRID_SIZE) {
-        handleCollision(bullet, segment, bIndex, sIndex);
-      }
-    });
-  });
-}
-
-function handleCollision(bullet, segment, bIndex, sIndex) {
-  if(bullet.color === segment.color) {
-    snake.splice(sIndex, 1);
-    score += 100;
-    bullets.splice(bIndex, 1);
-    
-    // Восстановление пути
-    if(snake.length === 0 && sIndex > 0) {
-      snake.unshift(snake[sIndex-1]);
-    }
-  }
-}
-
-// Отрисовка прицела
-function drawAim() {
-  if(!isAiming) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  ctx.strokeStyle = currentBulletColor;
-  ctx.beginPath();
-  ctx.moveTo(canvas.width/2, canvas.height/2);
-  ctx.lineTo(
-    canvas.width/2 + aimDirection.x * 100,
-    canvas.height/2 + aimDirection.y * 100
-  );
-  ctx.stroke();
+  updateSnake();
+  drawSnake();
+  updateBullets();
+  checkCollisions();
+  drawAim();
+  
+  requestAnimationFrame(gameLoop);
 }
 
-// Система авторизации
+// Авторизация
 document.getElementById('loginButton').addEventListener('click', () => {
   const nickname = document.getElementById('nicknameInput').value;
   const alliance = document.getElementById('allianceInput').value;
@@ -198,7 +206,7 @@ document.querySelectorAll('#factionSelection button').forEach(btn => {
   });
 });
 
-// Запуск игры
+// Старт игры
 document.getElementById('startGameButton').addEventListener('click', () => {
   initGame();
   canvas.style.display = 'block';
