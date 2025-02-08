@@ -1,95 +1,139 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const box = 20; // Размер одной клетки
-let snake = [{ x: 10, y: 10 }]; // Начальная позиция змейки
-let food = { x: 5, y: 5 }; // Позиция еды
-let direction = { x: 0, y: 0 }; // Направление движения
+// Настройки игры
+const gridSize = 20; // Размер клетки
+const colors = ["red", "green", "blue", "yellow"]; // Цвета фрагментов змеи
+let snake = [];
+let player = { x: canvas.width / 2, y: canvas.height / 2 }; // Игрок в центре
+let bullets = [];
 let score = 0;
+let level = 1;
+let isGameOver = false;
 
-// Генерация случайной позиции для еды
-function generateFood() {
-  food = {
-    x: Math.floor(Math.random() * (canvas.width / box)),
-    y: Math.floor(Math.random() * (canvas.height / box)),
-  };
+// Инициализация змеи
+function initSnake() {
+  const radius = Math.min(canvas.width, canvas.height) / 2 - gridSize;
+  const segments = 20; // Количество фрагментов змеи
+  for (let i = 0; i < segments; i++) {
+    const angle = (i / segments) * 2 * Math.PI;
+    const x = canvas.width / 2 + radius * Math.cos(angle);
+    const y = canvas.height / 2 + radius * Math.sin(angle);
+    snake.push({ x, y, color: colors[i % colors.length] });
+  }
 }
 
-// Отрисовка змейки и еды
-function draw() {
+// Отрисовка змеи
+function drawSnake() {
+  snake.forEach(segment => {
+    ctx.fillStyle = segment.color;
+    ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+  });
+}
+
+// Движение змеи
+function moveSnake() {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  snake.forEach(segment => {
+    const dx = centerX - segment.x;
+    const dy = centerY - segment.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    segment.x += (dx / distance) * level; // Скорость зависит от уровня
+    segment.y += (dy / distance) * level;
+  });
+}
+
+// Стрельба
+function shootBullet(direction) {
+  const bullet = {
+    x: player.x,
+    y: player.y,
+    dx: direction.x,
+    dy: direction.y,
+    color: colors[Math.floor(Math.random() * colors.length)]
+  };
+  bullets.push(bullet);
+}
+
+// Отрисовка снарядов
+function drawBullets() {
+  bullets.forEach((bullet, index) => {
+    ctx.fillStyle = bullet.color;
+    ctx.fillRect(bullet.x, bullet.y, gridSize / 2, gridSize / 2);
+
+    // Перемещение снаряда
+    bullet.x += bullet.dx * 5;
+    bullet.y += bullet.dy * 5;
+
+    // Проверка столкновений
+    snake.forEach((segment, segIndex) => {
+      if (
+        bullet.x < segment.x + gridSize &&
+        bullet.x + gridSize / 2 > segment.x &&
+        bullet.y < segment.y + gridSize &&
+        bullet.y + gridSize / 2 > segment.y
+      ) {
+        if (bullet.color === segment.color) {
+          snake.splice(segIndex, 1); // Уничтожение фрагмента
+          bullets.splice(index, 1); // Удаление снаряда
+          score++;
+        }
+      }
+    });
+
+    // Удаление снаряда за пределами экрана
+    if (
+      bullet.x < 0 ||
+      bullet.x > canvas.width ||
+      bullet.y < 0 ||
+      bullet.y > canvas.height
+    ) {
+      bullets.splice(index, 1);
+    }
+  });
+}
+
+// Отрисовка игрока
+function drawPlayer() {
+  ctx.fillStyle = "white";
+  ctx.fillRect(player.x, player.y, gridSize, gridSize);
+}
+
+// Обновление игры
+function update() {
+  if (isGameOver) return;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Отрисовка змейки
-  ctx.fillStyle = "green";
-  snake.forEach(segment => ctx.fillRect(segment.x * box, segment.y * box, box, box));
+  moveSnake();
+  drawSnake();
+  drawPlayer();
+  drawBullets();
 
-  // Отрисовка еды
-  ctx.fillStyle = "red";
-  ctx.fillRect(food.x * box, food.y * box, box, box);
-
-  // Отрисовка счёта
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText(`Score: ${score}`, 10, 20);
-}
-
-// Обновление состояния игры
-function update() {
-  const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-
-  // Проверка столкновений
-  if (
-    head.x < 0 || head.x >= canvas.width / box ||
-    head.y < 0 || head.y >= canvas.height / box ||
-    snake.some(segment => segment.x === head.x && segment.y === head.y)
-  ) {
-    alert("Game Over!");
-    resetGame();
-    return;
+  // Проверка проигрыша
+  if (snake.some(segment => segment.x === player.x && segment.y === player.y)) {
+    isGameOver = true;
+    alert("Game Over! Your score: " + score);
   }
 
-  // Добавление новой головы
-  snake.unshift(head);
-
-  // Проверка, съела ли змейка еду
-  if (head.x === food.x && head.y === food.y) {
-    score++;
-    generateFood();
-  } else {
-    snake.pop(); // Убираем последний сегмент, если еда не съедена
-  }
+  requestAnimationFrame(update);
 }
 
-// Сброс игры
-function resetGame() {
-  snake = [{ x: 10, y: 10 }];
-  direction = { x: 0, y: 0 };
-  score = 0;
-  generateFood();
-}
-
-// Управление змейкой
+// Управление
 document.addEventListener("keydown", event => {
-  switch (event.key) {
-    case "ArrowUp":
-      if (direction.y === 0) direction = { x: 0, y: -1 };
-      break;
-    case "ArrowDown":
-      if (direction.y === 0) direction = { x: 0, y: 1 };
-      break;
-    case "ArrowLeft":
-      if (direction.x === 0) direction = { x: -1, y: 0 };
-      break;
-    case "ArrowRight":
-      if (direction.x === 0) direction = { x: 1, y: 0 };
-      break;
+  const directions = {
+    ArrowUp: { x: 0, y: -1 },
+    ArrowDown: { x: 0, y: 1 },
+    ArrowLeft: { x: -1, y: 0 },
+    ArrowRight: { x: 1, y: 0 }
+  };
+
+  if (directions[event.key]) {
+    shootBullet(directions[event.key]);
   }
 });
 
-// Запуск игры
-function gameLoop() {
-  update();
-  draw();
-}
-setInterval(gameLoop, 150); // Обновление каждые 150 мс
-generateFood();
+// Инициализация игры
+initSnake();
+update();
