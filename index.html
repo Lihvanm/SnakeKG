@@ -7,63 +7,20 @@
   <style>
     body {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
       margin: 0;
-      background-color: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
     }
     canvas {
-      border: 2px solid #fff;
-      background-color: #111;
-      display: none; /* Скрываем холст до начала игры */
-    }
-    .auth-form {
-      margin-bottom: 20px;
-    }
-    .auth-form input {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-    }
-    .stats {
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    .video-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .video-container video {
-      width: 300px;
-      height: auto;
+      border: 1px solid black;
+      background-color: #fff;
     }
   </style>
 </head>
 <body>
-  <h1>Snake Game</h1>
-  <div class="auth-form" id="authForm">
-    <input type="text" id="allianceInput" placeholder="Введите Альянс">
-    <input type="text" id="serverInput" placeholder="Введите № сервера">
-    <button id="loginButton">Войти</button>
-  </div>
-  <div class="stats" id="stats"></div>
-  <div class="video-container" id="videoContainer">
-    <video controls autoplay loop muted>
-      <source src="https://i.imgur.com/Cftsnrl.mp4" type="video/mp4">
-      Ваш браузер не поддерживает воспроизведение видео.
-    </video>
-  </div>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <button id="startGameButton" style="display: none;">Начать игру</button>
   <script src="snake.js"></script>
 </body>
 </html>
