@@ -1,55 +1,53 @@
-/* Общие стили */
-body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  margin: 0;
-  background-color: #000;
-  color: #fff;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Форма авторизации -->
+  <div id="authForm">
+    <h2>Вход в игру</h2>
+    <input type="text" id="nicknameInput" placeholder="Никнейм">
+    <input type="text" id="allianceInput" placeholder="Альянс">
+    <input type="text" id="serverInput" placeholder="Сервер">
+    <button id="loginButton">Войти</button>
+    <video id="videoContainer" autoplay loop muted>
+      <source src="background.mp4" type="video/mp4">
+      Ваш браузер не поддерживает видео.
+    </video>
+  </div>
 
-#authForm, #factionSelection, #startGameContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+  <!-- Выбор фракции -->
+  <div id="factionSelection" style="display: none;">
+    <h2>Выберите фракцию</h2>
+    <button data-faction="fire">Огонь</button>
+    <button data-faction="ice">Лед</button>
+    <button data-faction="archer">Лучник</button>
+    <button data-faction="goblin">Гоблин</button>
+  </div>
 
-#startGameContainer {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+  <!-- Игровые кнопки -->
+  <div id="gameButtons" style="display: none;">
+    <button id="startGameButton">Начать игру</button>
+    <button id="sendResultButton" style="display: none;">Отправить результат</button>
+  </div>
 
-#startGameButton {
-  padding: 15px 30px;
-  font-size: 20px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: box-shadow 0.3s ease;
-}
+  <!-- Игровое поле -->
+  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
 
-#startGameButton.red {
-  background-color: red;
-  box-shadow: 0 0 20px red;
-}
+  <!-- Пост-игровые опции -->
+  <div id="postGameOptions" style="display: none;">
+    <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
+  </div>
 
-#startGameButton.blue {
-  background-color: blue;
-  box-shadow: 0 0 20px blue;
-}
+  <!-- Статистика -->
+  <div id="stats"></div>
 
-#startGameButton.yellow {
-  background-color: yellow;
-  color: black;
-  box-shadow: 0 0 20px yellow;
-}
-
-#startGameButton.green {
-  background-color: green;
-  box-shadow: 0 0 20px green;
-}
+  <script src="game.js"></script>
+  <script src="telegram.js"></script>
+</body>
+</html>
