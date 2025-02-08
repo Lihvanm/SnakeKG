@@ -11,12 +11,32 @@ let score = 0;
 let level = 1;
 let isGameOver = false;
 
-// Инициализация змеи
-function initSnake() {
-  const radius = Math.min(canvas.width, canvas.height) / 2 - gridSize;
+// Авторизация
+let alliance = "";
+let serverNumber = "";
+let isLoggedIn = false;
+
+document.getElementById("loginButton").addEventListener("click", () => {
+  alliance = document.getElementById("allianceInput").value;
+  serverNumber = document.getElementById("serverInput").value;
+  if (alliance && serverNumber) {
+    isLoggedIn = true;
+    alert(`Добро пожаловать, ${alliance}! Сервер №${serverNumber}`);
+    initGame();
+  } else {
+    alert("Пожалуйста, заполните все поля.");
+  }
+});
+
+// Инициализация игры
+function initGame() {
+  snake = [];
+  const startX = canvas.width - gridSize; // Правый верхний угол
+  const startY = 0;
   const segments = 20; // Количество фрагментов змеи
   for (let i = 0; i < segments; i++) {
     const angle = (i / segments) * 2 * Math.PI;
+    const radius = canvas.width / 2 - gridSize;
     const x = canvas.width / 2 + radius * Math.cos(angle);
     const y = canvas.height / 2 + radius * Math.sin(angle);
     snake.push({ x, y, color: colors[i % colors.length] });
@@ -78,6 +98,7 @@ function drawBullets() {
           snake.splice(segIndex, 1); // Уничтожение фрагмента
           bullets.splice(index, 1); // Удаление снаряда
           score++;
+          updateLevel();
         }
       }
     });
@@ -94,6 +115,15 @@ function drawBullets() {
   });
 }
 
+// Обновление уровня
+function updateLevel() {
+  if (score >= 10) {
+    level = 3;
+  } else if (score >= 5) {
+    level = 2;
+  }
+}
+
 // Отрисовка игрока
 function drawPlayer() {
   ctx.fillStyle = "white";
@@ -102,7 +132,7 @@ function drawPlayer() {
 
 // Обновление игры
 function update() {
-  if (isGameOver) return;
+  if (!isLoggedIn || isGameOver) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -135,5 +165,7 @@ document.addEventListener("keydown", event => {
 });
 
 // Инициализация игры
-initSnake();
-update();
+if (isLoggedIn) {
+  initGame();
+  update();
+}
