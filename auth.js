@@ -11,7 +11,7 @@ function handleLogin() {
   if (nickname && alliance && serverNumber) {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
-    document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
+    document.getElementById("authForm").style.display = "block"; // Скрываем форму авторизации
     document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
     document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
