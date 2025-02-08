@@ -77,7 +77,6 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
         currentBulletColor = "green";
         break;
     }
-    document.getElementById("factionSelection").style.display = "none";
     document.getElementById("startGameButton").style.display = "block";
   });
 });
@@ -175,8 +174,7 @@ function moveSnake() {
   // Если змея достигла конца пути
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
-    alert("Game Over! Your score: " + score);
-    document.getElementById("sendResultButton").style.display = "block";
+    showPostGameOptions();
     return;
   }
 }
@@ -185,7 +183,7 @@ function moveSnake() {
 function drawSnake() {
   snake.forEach((segment, index) => {
     ctx.beginPath();
-    ctx.arc(segment.x, segment.y, gridSize / 3, 0, Math.PI * 2); // Рисуем круглые сегменты
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2); // Увеличиваем размер шаров
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
@@ -337,33 +335,35 @@ canvas.addEventListener("touchstart", (event) => {
   isAiming = true;
 });
 canvas.addEventListener("touchmove", (event) => {
-  if (isAiming) {
-    const touch = event.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const touchX = touch.clientX - rect.left;
-    const touchY = touch.clientY - rect.top;
-    const dx = touchX - (player.x + gridSize / 2);
-    const dy = touchY - (player.y + gridSize / 2);
-    const length = Math.sqrt(dx * dx + dy * dy);
-    aimDirection = { x: dx / length, y: dy / length };
-  }
-});
-canvas.addEventListener("touchend", () => {
-  const currentTime = Date.now();
-  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
-    shootBullet(aimDirection);
-    isAiming = false;
-    lastShotTime = currentTime;
-  }
+  if
+    // Показать пост-игровые опции
+function showPostGameOptions() {
+  document.getElementById("postGameOptions").style.display = "flex"; // Показываем кнопки "Начать заново" и "Отправить результат"
+  
+  // Автоматическая отправка результата через минуту, если игрок ничего не делает
+  setTimeout(() => {
+    const nickname = document.getElementById("nicknameInput").value.trim();
+    const alliance = document.getElementById("allianceInput").value.trim();
+    const serverNumber = document.getElementById("serverInput").value.trim();
+    sendTelegramMessage(nickname, alliance, serverNumber, score);
+    saveStats();
+  }, 60000); // 60 секунд (1 минута)
+}
+
+// Кнопка "Начать заново"
+document.getElementById("restartGameButton").addEventListener("click", () => {
+  document.getElementById("postGameOptions").style.display = "none"; // Скрываем пост-игровые опции
+  initGame(); // Инициализируем игру заново
+  update(); // Запускаем игровой цикл
 });
 
-// Отправка результата
-document.getElementById("sendResultButton").addEventListener("click", () => {
+// Кнопка "Отправить результат" в пост-игровых опциях
+document.getElementById("sendResultButtonPostGame").addEventListener("click", () => {
   const nickname = document.getElementById("nicknameInput").value.trim();
   const alliance = document.getElementById("allianceInput").value.trim();
   const serverNumber = document.getElementById("serverInput").value.trim();
   sendTelegramMessage(nickname, alliance, serverNumber, score);
   saveStats();
-  document.getElementById("sendResultButton").style.display = "none";
-  document.getElementById("startGameButton").style.display = "block";
+  document.getElementById("postGameOptions").style.display = "none"; // Скрываем пост-игровые опции
+  document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
 });
