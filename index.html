@@ -7,20 +7,35 @@
   <style>
     body {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
       margin: 0;
-      background-color: #f0f0f0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
     }
     canvas {
-      border: 1px solid black;
-      background-color: #fff;
+      border: 2px solid #fff;
+      background-color: #111;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    .controls button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
+  <h1>Snake Game</h1>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div class="controls">
+    <button id="shootButton">Shoot</button>
+  </div>
   <script src="snake.js"></script>
 </body>
 </html>
