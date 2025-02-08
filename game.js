@@ -1,127 +1,167 @@
-// Инициализация сцены, камеры и рендерера
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+// game.js
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-// Освещение
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(0, 10, 10);
-scene.add(light);
+// Настройки игры
+const gridSize = 71;
+const canvasSize = 640;
+const colors = ["red", "green", "blue", "yellow"];
+let snake = [];
+let player = { x: canvas.width / 2, y: canvas.height / 2 };
+let bullets = [];
+let score = 0;
+let highScore = 0;
+let isGameOver = false;
+let isLoggedIn = false;
+let currentBulletColor = "red";
+let isAiming = false;
+let aimDirection = { x: 0, y: 0 };
 
-// Игрок
-const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
-const playerMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-const player = new THREE.Mesh(playerGeometry, playerMaterial);
-player.position.set(0, 0, 0);
-scene.add(player);
+// Логика змейки
+let snakePath = [];
+let currentSegmentIndex = 0;
+let lastSegmentTime = 0;
 
-// Змейка
-const snakeSegments = [];
-const snakeRadius = 5; // Радиус круга, по которому движется змейка
-const snakeSpeed = 0.02; // Скорость движения змейки
-let snakeAngle = 0; // Угол движения змейки
-let snakeCircles = 0; // Количество сделанных кругов
+// Telegram
+const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE";
+const TELEGRAM_CHAT_ID = "-1002382138419";
 
-function createSnakeSegment() {
-  const segmentGeometry = new THREE.SphereGeometry(0.5, 16, 16);
-  const segmentMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-  const segment = new THREE.Mesh(segmentGeometry, segmentMaterial);
-  scene.add(segment);
-  snakeSegments.push(segment);
+// Авторизация
+document.getElementById("loginButton").addEventListener("click", handleLogin);
+document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
+document.getElementById("allianceInput").addEventListener("keydown", handleEnterKey);
+document.getElementById("serverInput").addEventListener("keydown", handleEnterKey);
+
+function handleLogin() {
+  const nickname = document.getElementById("nicknameInput").value.trim();
+  const alliance = document.getElementById("allianceInput").value.trim();
+  const serverNumber = document.getElementById("serverInput").value.trim();
+
+  if (nickname && alliance && serverNumber) {
+    isLoggedIn = true;
+    alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
+    document.getElementById("authForm").style.display = "none";
+    document.getElementById("factionSelection").style.display = "flex";
+    loadStats();
+    updateStatsUI(nickname, alliance, serverNumber);
+  } else {
+    alert("Пожалуйста, заполните все поля.");
+  }
 }
 
-// Создаем змейку из 10 звеньев
-for (let i = 0; i < 10; i++) {
-  createSnakeSegment();
+function handleEnterKey(event) {
+  if (event.key === "Enter") {
+    const inputs = [
+      document.getElementById("nicknameInput"),
+      document.getElementById("allianceInput"),
+      document.getElementById("serverInput")
+    ];
+    const currentIndex = inputs.indexOf(event.target);
+    if (currentIndex < inputs.length - 1) {
+      inputs[currentIndex + 1].focus();
+    } else {
+      handleLogin();
+    }
+  }
 }
 
-// Снаряды
-const bullets = [];
-const bulletSpeed = 0.2; // Скорость снаряда
-const fireRate = 200; // Задержка между выстрелами (в миллисекундах)
-let lastShotTime = 0;
+// Выбор фракции
+document.querySelectorAll("#factionSelection button").forEach(button => {
+  button.addEventListener("click", () => {
+    const faction = button.getAttribute("data-faction");
+    currentBulletColor = {
+      "fire": "red",
+      "ice": "blue",
+      "archer": "yellow",
+      "goblin": "green"
+    }[faction];
+    
+    document.getElementById("factionSelection").style.display = "none";
+    document.getElementById("startGameButton").style.display = "block";
+  });
+});
 
-function shootBullet() {
-  const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-  const bulletMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
-  const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-  bullet.position.copy(player.position);
-  scene.add(bullet);
+// Начало игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+  document.getElementById("videoContainer").style.display = "none";
+  document.getElementById("gameCanvas").style.display = "block";
+  initGame();
+  update();
+});
 
-  // Направление выстрела
-  const direction = new THREE.Vector3();
-  camera.getWorldDirection(direction);
-  bullet.direction = direction.normalize();
+// Логика змейки
+function generateSnakePath() {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize;
+  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5];
 
-  bullets.push(bullet);
+  for (let i = 0; i < segmentsPerCircle.length; i++) {
+    const segments = segmentsPerCircle[i];
+    const angleStep = (2 * Math.PI) / segments;
+
+    for (let j = 0; j < segments; j++) {
+      const angle = j * angleStep;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      snakePath.push({ x: x, y: y });
+    }
+    radius -= gridSize;
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const x = centerX + (radius - i * gridSize) * Math.cos(0);
+    const y = centerY + (radius - i * gridSize) * Math.sin(0);
+    snakePath.push({ x: x, y: y });
+  }
 }
 
-// Управление стрельбой
-document.addEventListener("click", () => {
+function moveSnake() {
   const currentTime = Date.now();
-  if (currentTime - lastShotTime >= fireRate) {
-    shootBullet();
-    lastShotTime = currentTime;
-  }
-});
-
-// Камера
-camera.position.set(0, 10, 10);
-camera.lookAt(player.position);
-
-// Анимация
-function animate() {
-  requestAnimationFrame(animate);
-
-  // Движение змейки
-  snakeAngle += snakeSpeed;
-  snakeSegments.forEach((segment, index) => {
-    const angle = snakeAngle + (index * 0.1);
-    segment.position.x = Math.cos(angle) * snakeRadius;
-    segment.position.z = Math.sin(angle) * snakeRadius;
-  });
-
-  // Проверка на завершение круга
-  if (snakeAngle >= 2 * Math.PI) {
-    snakeAngle = 0;
-    snakeCircles++;
-    if (snakeCircles >= 4) {
-      // Змейка атакует игрока
-      alert("Змейка атаковала вас! Игра окончена.");
-      resetGame();
-    }
+  if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
+    const newSegment = { ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] };
+    snake.unshift(newSegment);
+    currentSegmentIndex++;
+    lastSegmentTime = currentTime;
   }
 
-  // Движение снарядов
-  bullets.forEach((bullet, index) => {
-    bullet.position.add(bullet.direction.multiplyScalar(bulletSpeed));
-
-    // Удаление снаряда за пределами сцены
-    if (bullet.position.distanceTo(player.position) > 20) {
-      scene.remove(bullet);
-      bullets.splice(index, 1);
-    }
-  });
-
-  renderer.render(scene, camera);
+  if (currentSegmentIndex >= snakePath.length) {
+    isGameOver = true;
+    showPostGameOptions();
+  }
 }
 
-// Сброс игры
-function resetGame() {
-  snakeAngle = 0;
-  snakeCircles = 0;
-  bullets.forEach(bullet => scene.remove(bullet));
-  bullets.length = 0;
+// Остальные функции игры
+function initGame() {
+  snake = [];
+  generateSnakePath();
+  bullets = [];
+  score = 0;
+  isGameOver = false;
+  currentSegmentIndex = 0;
+  lastSegmentTime = Date.now();
 }
 
-// Запуск анимации
-animate();
+function update() {
+  if (!isLoggedIn || isGameOver) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  moveSnake();
+  drawSnake();
+  handleCollision();
+  requestAnimationFrame(update);
+}
 
-// Адаптация под изменение размера окна
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+// Добавьте остальные функции (drawSnake, handleCollision и т.д.) здесь...
+
+// Telegram
+async function sendTelegramMessage(nickname, alliance, serverNumber, bestScore) {
+  const message = `🏆 Результаты игры:\nНик: ${nickname}\nАльянс: ${alliance}\nСервер: №${serverNumber}\nНаилучший счет: ${bestScore}`;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+
+  try {
+    await fetch(url);
+    alert("Результат отправлен в группу!");
+  } catch (error) {
+    alert("Ошибка при отправке результата.");
+  }
+}
