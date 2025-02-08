@@ -15,16 +15,27 @@
     <button id="loginButton">Войти</button>
   </div>
 
+  <!-- Видео -->
+  <div id="videoContainer">
+    <video id="backgroundVideo" autoplay muted loop>
+      <source src="snake_intro.mp4" type="video/mp4">
+      Ваш браузер не поддерживает воспроизведение видео.
+    </video>
+  </div>
+
   <!-- Выбор фракции -->
   <div id="factionSelection" style="display: none;">
-    <button data-faction="fire">Огонь</button>
-    <button data-faction="ice">Лед</button>
-    <button data-faction="archer">Лучник</button>
+    <button data-faction="fire">Огненный маг</button>
+    <button data-faction="ice">Ледяная колдунья</button>
+    <button data-faction="archer">Лучница</button>
     <button data-faction="goblin">Гоблин</button>
   </div>
 
   <!-- Игровая область -->
   <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
+
+  <!-- Кнопка "Начать игру" -->
+  <button id="startGameButton" style="display: none;">Начать игру</button>
 
   <!-- Статистика -->
   <div id="stats"></div>
