@@ -71,7 +71,10 @@ document.getElementById("startGameButton").addEventListener("click", () => {
 
 // Инициализация игры
 function initGame() {
-  snake = [{ x: canvas.width - gridSize, y: 0, color: colors[Math.floor(Math.random() * colors.length)] }]; // Начальная позиция змеи
+  snake = [];
+  for (let i = 0; i < 50; i++) {
+    snake.push({ x: canvas.width - gridSize - i * gridSize, y: 0, color: colors[Math.floor(Math.random() * colors.length)] });
+  }
   bullets = [];
   score = 0;
   isGameOver = false;
@@ -89,29 +92,28 @@ function drawSnake() {
 }
 
 // Движение змеи
-let angle = 0; // Угол для движения по кругу
-let radius = Math.max(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
 function moveSnake() {
+  const head = { ...snake[0] };
+
+  // Движение головы к центру
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
+  const dx = centerX - head.x;
+  const dy = centerY - head.y;
+  const length = Math.sqrt(dx * dx + dy * dy);
 
-  // Вычисляем новую позицию головы змеи
-  const headX = centerX + radius * Math.cos(angle);
-  const headY = centerY + radius * Math.sin(angle);
-
-  // Добавляем новую голову
-  snake.unshift({ x: headX, y: headY, color: colors[Math.floor(Math.random() * colors.length)] });
-
-  // Уменьшаем радиус для сужения спирали
-  radius -= 0.05; // Медленное сужение
-
-  // Удаляем хвост, если змея слишком длинная
-  if (snake.length > 100) {
-    snake.pop();
+  if (length > gridSize) {
+    head.x += (dx / length) * gridSize;
+    head.y += (dy / length) * gridSize;
+  } else {
+    isGameOver = true;
+    alert("Game Over! Your score: " + score);
+    return;
   }
 
-  // Увеличиваем угол для движения по спирали
-  angle += 0.02; // Угол увеличивается медленно
+  // Обновляем позиции всех сегментов
+  snake.unshift(head);
+  snake.pop();
 }
 
 // Отрисовка игрока
