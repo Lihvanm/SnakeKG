@@ -4,34 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Подключаем стили -->
-  <script src="auth.js" defer></script>
-  <script src="game.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #authForm, #factionSelection, #postGameOptions {
+      margin-top: 20px;
+    }
+    #gameCanvas {
+      display: none;
+      border: 1px solid black;
+    }
+  </style>
 </head>
 <body>
   <!-- Форма авторизации -->
   <div id="authForm">
+    <h2>Авторизация</h2>
     <input type="text" id="nicknameInput" placeholder="Никнейм">
     <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Сервер">
+    <input type="text" id="serverInput" placeholder="Номер сервера">
     <button id="loginButton">Войти</button>
   </div>
 
   <!-- Выбор фракции -->
   <div id="factionSelection" style="display: none;">
-    <button data-faction="fire">Огненный маг</button>
-    <button data-faction="ice">Ледяная колдунья</button>
-    <button data-faction="archer">Лучница</button>
-    <button data-faction="goblin">Гоблин</button>
-  </div>
-
-  <!-- Кнопка "Начать игру" -->
-  <div id="startGameContainer" style="display: none; justify-content: center; align-items: center;">
-    <button id="startGameButton" style="display: none;">Начать игру</button>
+    <h2>Выберите фракцию</h2>
+    <div class="faction-selection">
+      <button data-faction="fire">Огонь</button>
+      <button data-faction="ice">Лед</button>
+      <button data-faction="archer">Лучник</button>
+      <button data-faction="goblin">Гоблин</button>
+    </div>
   </div>
 
   <!-- Игровое поле -->
-  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
+  <canvas id="gameCanvas" width="640" height="640"></canvas>
+
+  <!-- Кнопки управления -->
+  <div id="gameButtons" style="display: none;">
+    <button id="startGameButton" style="display: none;">Начать игру</button>
+    <button id="sendResultButton" style="display: none;">Отправить результат</button>
+  </div>
 
   <!-- Пост-игровые опции -->
   <div id="postGameOptions" style="display: none;">
@@ -41,5 +56,8 @@
 
   <!-- Статистика -->
   <div id="stats"></div>
+
+  <script src="auth.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
