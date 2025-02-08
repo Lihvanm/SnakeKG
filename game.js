@@ -1,5 +1,4 @@
 // game.js
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -13,7 +12,6 @@ let bullets = [];
 let score = 0;
 let highScore = 0;
 let isGameOver = false;
-let isLoggedIn = false;
 
 // Переменные для управления выстрелом
 let isAiming = false; // Флаг для наведения цели
@@ -55,7 +53,6 @@ function generateSnakePath() {
       y -= gridSize;
     }
     stepCount++;
-
     if (stepCount === steps) {
       stepCount = 0;
       if (direction === "left") {
@@ -82,7 +79,6 @@ function moveSnake() {
     currentSegmentIndex++;
     lastSegmentTime = currentTime;
   }
-
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
     showPostGameOptions();
@@ -98,17 +94,7 @@ function drawSnake() {
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
-  }
-}
-
-// Начало игры
-document.getElementById("startGameButton").addEventListener("click", () => {
-  canvas.style.display = "block"; // Показываем холст
-  initGame();
-  update();
-  document.getElementById("startGameButton").style.display = "none"; // Скрываем кнопку
-  document.getElementById("sendResultButton").style.display = "none"; // Скрываем кнопку отправки результата
-});
+  });
 }
 
 // Отрисовка игрока
@@ -299,3 +285,12 @@ function showPostGameOptions() {
     saveStats();
   }, 60000); // 60 секунд (1 минута)
 }
+
+// Начало игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+  canvas.style.display = "block"; // Показываем холст
+  initGame();
+  update();
+  document.getElementById("startGameButton").style.display = "none"; // Скрываем кнопку
+  document.getElementById("sendResultButton").style.display = "none"; // Скрываем кнопку отправки результата
+});
