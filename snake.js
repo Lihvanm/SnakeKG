@@ -29,9 +29,9 @@ document.getElementById("loginButton").addEventListener("click", () => {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${alliance}! Сервер №${serverNumber}`);
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
+    document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     loadStats();
     updateStatsUI(alliance, serverNumber);
-    document.getElementById("startGameButton").style.display = "block";
   } else {
     alert("Пожалуйста, заполните все поля.");
   }
@@ -55,8 +55,10 @@ async function sendTelegramMessage(alliance, serverNumber, bestScore) {
   try {
     await fetch(url);
     console.log("Сообщение отправлено в Telegram!");
+    alert("Результат отправлен в группу!");
   } catch (error) {
     console.error("Ошибка при отправке сообщения в Telegram:", error);
+    alert("Ошибка при отправке результата. Попробуйте еще раз.");
   }
 }
 
@@ -67,6 +69,7 @@ document.getElementById("startGameButton").addEventListener("click", () => {
   initGame();
   update();
   document.getElementById("startGameButton").style.display = "none";
+  document.getElementById("sendResultButton").style.display = "none";
 });
 
 // Инициализация игры
@@ -91,23 +94,26 @@ function drawSnake() {
   });
 }
 
-// Движение змеи
+// Движение змеи по прямоугольной спирали
 function moveSnake() {
   const head = { ...snake[0] };
 
-  // Движение головы к центру
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const dx = centerX - head.x;
-  const dy = centerY - head.y;
-  const length = Math.sqrt(dx * dx + dy * dy);
+  // Определяем направление движения
+  if (head.x > canvas.width / 2 && head.y === 0) {
+    head.x -= gridSize; // Движение влево
+  } else if (head.x === canvas.width / 2 && head.y < canvas.height / 2) {
+    head.y += gridSize; // Движение вниз
+  } else if (head.x < canvas.width && head.y === canvas.height / 2) {
+    head.x += gridSize; // Движение вправо
+  } else if (head.x === canvas.width && head.y > 0) {
+    head.y -= gridSize; // Движение вверх
+  }
 
-  if (length > gridSize) {
-    head.x += (dx / length) * gridSize;
-    head.y += (dy / length) * gridSize;
-  } else {
+  // Если голова достигла центра
+  if (Math.abs(head.x - canvas.width / 2) <= gridSize && Math.abs(head.y - canvas.height / 2) <= gridSize) {
     isGameOver = true;
     alert("Game Over! Your score: " + score);
+    document.getElementById("sendResultButton").style.display = "block";
     return;
   }
 
@@ -268,11 +274,12 @@ canvas.addEventListener("touchend", () => {
   }
 });
 
-// Конец игры
-function endGame(alliance, serverNumber) {
-  isGameOver = true;
+// Отправка результата
+document.getElementById("sendResultButton").addEventListener("click", () => {
+  const alliance = document.getElementById("allianceInput").value;
+  const serverNumber = document.getElementById("serverInput").value;
+  sendTelegramMessage(alliance, serverNumber, score);
   saveStats();
-  alert("Game Over! Your score: " + score);
-  sendTelegramMessage(alliance, serverNumber, score); // Отправляем результат в Telegram
+  document.getElementById("sendResultButton").style.display = "none";
   document.getElementById("startGameButton").style.display = "block";
-}
+});
