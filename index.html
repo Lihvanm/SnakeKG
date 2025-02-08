@@ -1,38 +1,98 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
   <style>
-    /* Добавляем важные стили */
-    #authForm {
+    body {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      overflow: hidden; /* Отключаем прокрутку */
+    }
+    canvas {
+      border: 2px solid #fff;
+      background-color: #111;
+      display: none; /* Скрываем холст до начала игры */
+      touch-action: none; /* Отключаем сенсорные действия */
+    }
+    .auth-form {
+      margin-bottom: 20px;
+    }
+    .auth-form input {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    .stats {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .video-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .video-container video {
+      width: 300px;
+      height: auto;
+    }
+    .game-buttons {
+      display: none; /* Кнопки скрыты до авторизации */
+      margin-top: 10px;
+    }
+    .faction-selection {
+      display: flex;
       gap: 10px;
-      position: absolute;
-      z-index: 2;
-      background: rgba(0,0,0,0.8);
-      padding: 20px;
+      margin-top: 10px;
     }
-
-    #gameCanvas {
-      position: relative;
-      z-index: 1;
-    }
-
-    #videoContainer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
+    .post-game-options {
+      display: none;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <!-- Остальные элементы остаются без изменений -->
+  <h1>Snake Game</h1>
+  <div class="auth-form" id="authForm">
+    <input type="text" id="nicknameInput" placeholder="Введите Ник в Kingdom Guards">
+    <input type="text" id="allianceInput" placeholder="Введите Альянс">
+    <input type="text" id="serverInput" placeholder="Введите № сервера">
+    <button id="loginButton">Войти</button>
+  </div>
+  <div class="game-buttons" id="gameButtons">
+    <button id="sendResultButton" style="display: none;">Отправить результат</button>
+    <div class="faction-selection" id="factionSelection" style="display: none;">
+      <button data-faction="fire">Огненный маг</button>
+      <button data-faction="ice">Ледяная колдунья</button>
+      <button data-faction="archer">Лучница</button>
+      <button data-faction="goblin">Гоблин</button>
+    </div>
+    <button id="startGameButton" style="display: none;">Начать игру</button>
+  </div>
+  <div class="post-game-options" id="postGameOptions">
+    <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="video-container" id="videoContainer">
+    <video controls autoplay loop muted>
+      <source src="https://i.imgur.com/Cftsnrl.mp4" type="video/mp4">
+      Ваш браузер не поддерживает воспроизведение видео.
+    </video>
+  </div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
   <script src="snake.js"></script>
 </body>
 </html>
