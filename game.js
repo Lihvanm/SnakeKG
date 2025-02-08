@@ -1,86 +1,87 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-// Настройки игры
-const gridSize = 71; // Размер ячейки (71 пиксель)
-const canvasSize = 640; // Размер игрового поля (640x640 пикселей)
-const colors = ["red", "green", "blue", "yellow"]; // Цвета фрагментов змейки
-let snake = [];
-let player = { x: canvas.width / 2, y: canvas.height / 2 }; // Игрок в центре
-let bullets = [];
-let score = 0;
-let highScore = 0;
-let isGameOver = false;
-let isLoggedIn = false;
-
-// Инициализация игры
-function initGame() {
-  snake = [];
-  generateSnakePath();
-  bullets = [];
-  score = 0;
-  isGameOver = false;
-  currentSegmentIndex = 0;
-  lastSegmentTime = Date.now();
+// Отрисовка змейки
+function drawSnake() {
+  snake.forEach((segment, index) => {
+    ctx.beginPath();
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
+    ctx.fillStyle = segment.color;
+    ctx.fill();
+    ctx.closePath();
+  });
 }
 
-// Генерация пути змейки
-function generateSnakePath() {
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
-  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5]; // Количество сегментов на каждый круг
+// Отрисовка игрока
+function drawPlayer() {
+  ctx.fillStyle = "white";
+  ctx.fillRect(player.x, player.y, gridSize, gridSize);
+}
 
-  for (let i = 0; i < segmentsPerCircle.length; i++) {
-    const segments = segmentsPerCircle[i];
-    const angleStep = (2 * Math.PI) / segments;
+// Отрисовка снарядов
+function drawBullets() {
+  bullets.forEach((bullet, index) => {
+    ctx.fillStyle = bullet.color;
+    ctx.fillRect(bullet.x, bullet.y, gridSize / 2, gridSize / 2);
 
-    for (let j = 0; j < segments; j++) {
-      const angle = j * angleStep;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      snakePath.push({ x: x, y: y });
+    // Перемещение снаряда
+    bullet.x += bullet.dx * 5;
+    bullet.y += bullet.dy * 5;
+
+    // Проверка столкновений
+    snake.forEach((segment, segIndex) => {
+      if (
+        bullet.x < segment.x + gridSize &&
+        bullet.x + gridSize / 2 > segment.x &&
+        bullet.y < segment.y + gridSize &&
+        bullet.y + gridSize / 2 > segment.y
+      ) {
+        if (bullet.color === segment.color) {
+          // Если цвета совпадают, превращаем звено в слабый цвет
+          segment.color = getWeakColor(segment.color);
+        } else if (isStrongerColor(bullet.color, segment.color)) {
+          // Если снаряд сильнее, удаляем звено
+          snake.splice(segIndex, 1); // Удаляем голову змейки
+          score++;
+          // Возвращаем голову змейки на одно звено назад
+          if (snake.length > 0) {
+            snake.unshift(snakePath[currentSegmentIndex - 1]);
+            currentSegmentIndex--;
+          }
+        } else {
+          // Если снаряд слабее, изменяем цвет звена на цвет снаряда
+          segment.color = bullet.color;
+        }
+        bullets.splice(index, 1); // Удаление снаряда
+      }
+    });
+
+    // Удаление снаряда за пределами экрана
+    if (
+      bullet.x < 0 ||
+      bullet.x > canvas.width ||
+      bullet.y < 0 ||
+      bullet.y > canvas.height
+    ) {
+      bullets.splice(index, 1);
     }
+  });
+}
 
-    radius -= gridSize; // Уменьшаем радиус для следующего круга
+// Отрисовка направления выстрела
+function drawAimLine() {
+  if (isAiming) {
+    ctx.strokeStyle = currentBulletColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(player.x + gridSize / 2, player.y + gridSize / 2);
+    ctx.lineTo(
+      player.x + gridSize / 2 + aimDirection.x * 100,
+      player.y + gridSize / 2 + aimDirection.y * 100
+    );
+    ctx.stroke();
   }
-
-  // Добавляем финальные шаги к центру
-  for (let i = 0; i < 5; i++) {
-    const x = centerX + (radius - i * gridSize) * Math.cos(0);
-    const y = centerY + (radius - i * gridSize) * Math.sin(0);
-    snakePath.push({ x: x, y: y });
-  }
 }
 
-// Обновление игры
-function update() {
-  if (!isLoggedIn || isGameOver) return;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  moveSnake();
-  drawSnake();
-  drawPlayer();
-  drawBullets();
-  drawAimLine();
-  drawStats();
-
-  requestAnimationFrame(update);
-}
-
-// Переменные для управления выстрелом
-let isAiming = false; // Флаг для наведения цели
-let aimDirection = { x: 0, y: 0 }; // Направление прицеливания
-let currentBulletColor = "red"; // Цвет снаряда по умолчанию
-
-// Загрузка статистики из localStorage
-function loadStats() {
-  highScore = parseInt(localStorage.getItem("highScore")) || 0;
-}
-
-// Сохранение статистики в localStorage
-function saveStats() {
-  highScore = Math.max(highScore, score);
-  localStorage.setItem("highScore", highScore);
+// Отрисовка статистики
+function drawStats() {
+  const statsDiv = document.getElementById("stats");
+  statsDiv.innerHTML = `Рейтинг: ${score} | Рекорд: ${highScore}`;
 }
