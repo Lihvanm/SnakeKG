@@ -36,8 +36,7 @@ document.getElementById("startGameButton").addEventListener("click", () => {
 
 // Инициализация игры
 function initGame() {
-  snake = [{ x: 20, y: 0 }]; // Начальная позиция змеи (правый верхний угол)
-  direction = { x: -1, y: 0 }; // Начальное направление (влево)
+  snake = [{ x: 20, y: 0, color: colors[Math.floor(Math.random() * colors.length)] }]; // Начальная позиция змеи
   bullets = [];
   score = 0;
   isGameOver = false;
@@ -45,20 +44,19 @@ function initGame() {
 
 // Отрисовка змеи
 function drawSnake() {
-  ctx.fillStyle = "lime";
-  snake.forEach(segment => ctx.fillRect(segment.x, segment.y, gridSize, gridSize));
+  snake.forEach(segment => {
+    ctx.fillStyle = segment.color;
+    ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+  });
 }
 
 // Движение змеи
 function moveSnake() {
-  const head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
+  const head = { x: snake[0].x, y: snake[0].y };
+  const radius = Math.sqrt((head.x - canvas.width / 2) ** 2 + (head.y - canvas.height / 2) ** 2);
 
-  // Проверка столкновений
-  if (
-    head.x < 0 || head.x >= canvas.width ||
-    head.y < 0 || head.y >= canvas.height ||
-    snake.some(segment => segment.x === head.x && segment.y === head.y)
-  ) {
+  // Проверка на приближение к центру
+  if (radius <= gridSize) {
     isGameOver = true;
     alert("Game Over! Your score: " + score);
     document.getElementById("startGameButton").style.display = "block";
@@ -66,26 +64,16 @@ function moveSnake() {
     return;
   }
 
+  // Вычисление нового направления
+  const angle = Math.atan2(canvas.height / 2 - head.y, canvas.width / 2 - head.x);
+  head.x += Math.cos(angle) * gridSize / 15; // Уменьшаем скорость в 15 раз
+  head.y += Math.sin(angle) * gridSize / 15;
+
   // Добавление новой головы
-  snake.unshift(head);
+  snake.unshift({ ...head, color: colors[Math.floor(Math.random() * colors.length)] });
 
   // Автоматический рост каждые 3 секунды
   setTimeout(() => snake.push({ x: -gridSize, y: -gridSize }), 3000);
-}
-
-// Обновление направления змеи
-function updateDirection() {
-  const head = snake[0];
-  const nextX = head.x + direction.x * gridSize;
-  const nextY = head.y + direction.y * gridSize;
-
-  // Поворот при столкновении со стеной или хвостом
-  if (nextX < 0 || nextX >= canvas.width || nextY < 0 || nextY >= canvas.height) {
-    if (direction.x === -1) direction = { x: 0, y: 1 }; // Вниз
-    else if (direction.y === 1) direction = { x: 1, y: 0 }; // Вправо
-    else if (direction.x === 1) direction = { x: 0, y: -1 }; // Вверх
-    else if (direction.y === -1) direction = { x: -1, y: 0 }; // Влево
-  }
 }
 
 // Отрисовка игрока
@@ -101,7 +89,7 @@ function shootBullet(direction) {
     y: player.y,
     dx: direction.x,
     dy: direction.y,
-    color: colors[Math.floor(Math.random() * colors.length)]
+    color: currentBulletColor
   };
   bullets.push(bullet);
 }
@@ -124,9 +112,14 @@ function drawBullets() {
         bullet.y < segment.y + gridSize &&
         bullet.y + gridSize / 2 > segment.y
       ) {
-        snake.splice(segIndex, 1); // Уничтожение фрагмента
-        bullets.splice(index, 1); // Удаление снаряда
-        score++;
+        if (bullet.color === segment.color) {
+          snake.splice(segIndex, 1); // Уничтожение фрагмента
+          bullets.splice(index, 1); // Удаление снаряда
+          score++;
+        } else {
+          segment.color = bullet.color; // Изменение цвета фрагмента
+          bullets.splice(index, 1); // Удаление снаряда
+        }
       }
     });
 
@@ -159,13 +152,15 @@ function loadStats() {
   highScore = parseInt(localStorage.getItem("highScore")) || 0;
 }
 
+// Текущий цвет снаряда
+let currentBulletColor = colors[Math.floor(Math.random() * colors.length)];
+
 // Обновление игры
 function update() {
   if (!isLoggedIn || isGameOver) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  updateDirection();
   moveSnake();
   drawSnake();
   drawPlayer();
@@ -176,6 +171,7 @@ function update() {
 }
 
 // Управление
+let lastShotTime = 0;
 document.addEventListener("keydown", event => {
   const directions = {
     ArrowUp: { x: 0, y: -1 },
@@ -184,8 +180,10 @@ document.addEventListener("keydown", event => {
     ArrowRight: { x: 1, y: 0 }
   };
 
-  if (directions[event.key]) {
+  const currentTime = Date.now();
+  if (directions[event.key] && currentTime - lastShotTime > 500) {
     shootBullet(directions[event.key]);
+    lastShotTime = currentTime;
   }
 });
 
@@ -200,5 +198,10 @@ canvas.addEventListener("touchstart", event => {
   const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
   direction.x /= length;
   direction.y /= length;
-  shootBullet(direction);
+
+  const currentTime = Date.now();
+  if (currentTime - lastShotTime > 500) {
+    shootBullet(direction);
+    lastShotTime = currentTime;
+  }
 });
