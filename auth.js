@@ -19,12 +19,6 @@ function handleLogin() {
     // Показываем выбор фракции
     document.getElementById("factionSelection").style.display = "flex";
 
-    // Скрываем видео
-    document.getElementById("videoContainer").style.display = "none";
-
-    // Показываем кнопку "Начать игру"
-    document.getElementById("startGameButton").style.display = "block";
-
     // Загружаем статистику
     if (typeof loadStats === "function") {
       loadStats();
@@ -54,3 +48,43 @@ function handleEnterKey(event) {
     }
   }
 }
+
+// Выбор фракции
+document.querySelectorAll("#factionSelection button").forEach(button => {
+  button.addEventListener("click", () => {
+    const faction = button.getAttribute("data-faction");
+    switch (faction) {
+      case "fire":
+        currentBulletColor = "red";
+        break;
+      case "ice":
+        currentBulletColor = "blue";
+        break;
+      case "archer":
+        currentBulletColor = "yellow";
+        break;
+      case "goblin":
+        currentBulletColor = "green";
+        break;
+    }
+
+    // Скрываем выбор фракции
+    document.getElementById("factionSelection").style.display = "none";
+
+    // Показываем кнопку "Начать игру" с мигающим золотым цветом
+    document.getElementById("startGameButton").style.display = "block";
+  });
+});
+
+// Начало игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+  // Скрываем видео
+  document.getElementById("videoContainer").style.display = "none";
+
+  // Показываем игровое поле
+  document.getElementById("gameCanvas").style.display = "block";
+
+  // Запускаем игру
+  initGame();
+  update();
+});
