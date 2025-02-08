@@ -1,5 +1,3 @@
-// auth.js
-
 // Авторизация
 document.getElementById("loginButton").addEventListener("click", handleLogin);
 document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
@@ -14,8 +12,17 @@ function handleLogin() {
     isLoggedIn = true;
     alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
+    document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
-    loadStats();
+    document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
+
+    // Проверяем, что функция loadStats существует
+    if (typeof loadStats === "function") {
+      loadStats();
+    } else {
+      console.error("Функция loadStats не определена!");
+    }
+
     updateStatsUI(nickname, alliance, serverNumber);
   } else {
     alert("Пожалуйста, заполните все поля.");
@@ -42,34 +49,23 @@ function handleEnterKey(event) {
 document.querySelectorAll(".faction-selection button").forEach(button => {
   button.addEventListener("click", () => {
     const faction = button.getAttribute("data-faction");
-    let color;
     switch (faction) {
       case "fire":
-        color = "red";
+        currentBulletColor = "red";
         break;
       case "ice":
-        color = "blue";
+        currentBulletColor = "blue";
         break;
       case "archer":
-        color = "yellow";
+        currentBulletColor = "yellow";
         break;
       case "goblin":
-        color = "green";
+        currentBulletColor = "green";
         break;
     }
-
-    // Добавляем цвет кнопке "Начать игру"
-    const startGameButton = document.getElementById("startGameButton");
-    startGameButton.style.display = "block";
-    startGameButton.style.backgroundColor = color;
-
-    // Скрываем выбор фракции
-    document.getElementById("factionSelection").style.display = "none";
-
-    // Останавливаем видео при нажатии на кнопку "Начать игру"
-    startGameButton.addEventListener("click", () => {
-      document.getElementById("videoContainer").style.display = "none";
-    });
+    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
+    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
+    document.getElementById("startGameButton").classList.add(currentBulletColor); // Добавляем цвет кнопке
   });
 });
 
@@ -78,10 +74,10 @@ function updateStatsUI(nickname, alliance, serverNumber) {
   const statsDiv = document.getElementById("stats");
   statsDiv.innerHTML = `
     Ник: ${nickname}
-    Альянс: ${alliance}
-    Сервер: №${serverNumber}
-    Текущий счет: ${score}
-    Рекорд: ${highScore}
+Альянс: ${alliance}
+Сервер: №${serverNumber}
+Текущий счет: ${score}
+Рекорд: ${highScore}
   `;
 }
 
