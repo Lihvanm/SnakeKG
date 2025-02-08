@@ -22,6 +22,9 @@
       background-color: #111;
       display: none;
       touch-action: none;
+      max-width: 100%;
+      max-height: 80vh;
+      aspect-ratio: 1 / 1;
     }
     .auth-form {
       margin-bottom: 20px;
@@ -34,6 +37,7 @@
     button {
       padding: 10px;
       font-size: 16px;
+      margin: 5px;
     }
     .stats {
       margin-top: 10px;
@@ -51,15 +55,21 @@
     .game-buttons {
       display: none;
       margin-top: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .faction-selection {
       display: flex;
       gap: 10px;
       margin-top: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .post-game-options {
       display: none;
       margin-top: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
   </style>
 </head>
@@ -88,7 +98,7 @@
       Ваш браузер не поддерживает воспроизведение видео.
     </video>
   </div>
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <script src="snake.js"></script>
 </body>
 </html>
