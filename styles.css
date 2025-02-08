@@ -15,6 +15,32 @@
   object-fit: cover;
 }
 
+/* Стили для кнопок фракции */
+#factionSelection button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 5px;
+}
+
+#factionSelection button[data-faction="fire"] {
+  background-color: red;
+}
+
+#factionSelection button[data-faction="ice"] {
+  background-color: blue;
+}
+
+#factionSelection button[data-faction="archer"] {
+  background-color: yellow;
+}
+
+#factionSelection button[data-faction="goblin"] {
+  background-color: green;
+}
+
 /* Стили для кнопки "Начать игру" */
 #startGameButton {
   margin-top: 20px;
@@ -23,20 +49,12 @@
   color: white;
   border: none;
   cursor: pointer;
+  background-color: gold;
+  animation: blink 1s infinite;
 }
 
-#startGameButton.red {
-  background-color: red;
-}
-
-#startGameButton.blue {
-  background-color: blue;
-}
-
-#startGameButton.yellow {
-  background-color: yellow;
-}
-
-#startGameButton.green {
-  background-color: green;
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
