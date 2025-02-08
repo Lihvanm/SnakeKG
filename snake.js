@@ -3,7 +3,9 @@ const ctx = canvas.getContext("2d");
 
 // Настройки игры
 const gridSize = 71; // Размер ячейки (71 пиксель)
-const canvasSize = 640; // Размер игрового поля (640x640 пикселей)
+const canvasSize = 639; // Размер игрового поля (кратен gridSize - 1)
+canvas.width = canvasSize;
+canvas.height = canvasSize;
 const colors = ["red", "green", "blue", "yellow"]; // Цвета фрагментов змеи
 let snake = [];
 let player = { x: canvas.width / 2, y: canvas.height / 2 }; // Игрок в центре
@@ -127,14 +129,9 @@ function initGame() {
 }
 
 // Генерация пути змейки
-let snakePath = [];
-let currentSegmentIndex = 0;
-let lastSegmentTime = 0;
-
 function generateSnakePath() {
   const gridSize = 71; // Размер ячейки (71 пиксель)
-  const canvasSize = 640; // Размер игрового поля (640x640 пикселей)
-
+  const canvasSize = 639; // Размер игрового поля (639x639 пикселей)
   let x = canvasSize - gridSize / 2; // Начальная точка (правый верхний угол)
   let y = gridSize / 2;
   let direction = "left"; // Начальное направление движения
@@ -143,7 +140,6 @@ function generateSnakePath() {
 
   while (snakePath.length < 81) {
     snakePath.push({ x: x, y: y });
-
     if (direction === "left") {
       x -= gridSize;
     } else if (direction === "down") {
@@ -153,13 +149,11 @@ function generateSnakePath() {
     } else if (direction === "up") {
       y -= gridSize;
     }
-
     stepCount++;
 
     // Если достигли конца текущего направления, меняем направление
     if (stepCount === steps) {
       stepCount = 0;
-
       if (direction === "left") {
         direction = "down";
       } else if (direction === "down") {
@@ -250,33 +244,36 @@ function drawBullets() {
     bullet.x += bullet.dx * 5;
     bullet.y += bullet.dy * 5;
 
-    // Проверка столкновений
-    snake.forEach((segment, segIndex) => {
-      if (
-        bullet.x < segment.x + gridSize &&
-        bullet.x + gridSize / 2 > segment.x &&
-        bullet.y < segment.y + gridSize &&
-        bullet.y + gridSize / 2 > segment.y
-      ) {
-        if (bullet.color === segment.color) {
-          // Если цвета совпадают, превращаем звено в слабый цвет
-          segment.color = getWeakColor(segment.color);
-        } else if (isStrongerColor(bullet.color, segment.color)) {
-          // Если снаряд сильнее, удаляем звено
-          snake.splice(segIndex, 1);
-          score++;
-
-          // Возвращаем голову змейки на одно звено назад
-          if (snake.length > 0) {
-            rollbackSnake();
-          }
-        } else {
-          // Если снаряд слабее, изменяем цвет звена на цвет снаряда
-          segment.color = bullet.color;
-        }
-        bullets.splice(index, 1); // Удаление снаряда
-      }
-    });
+// Проверка столкновений
+snake.forEach((segment, segIndex) => {
+  if (
+    bullet.x < segment.x + gridSize &&
+    bullet.x + gridSize / 2 > segment.x &&
+    bullet.y < segment.y + gridSize &&
+    bullet.y + gridSize / 2 > segment.y
+  ) {
+    if (bullet.color === segment.color) {
+      // Если цвета совпадают, превращаем звено в слабый цвет
+      segment.color = getWeakColor(segment.color);
+    } else if (isStrongerColor(bullet.color, segment.color)) {
+      // Если снаряд сильнее, удаляем звено
+      snake.splice(segIndex, 1);
+      score++;
+      rollbackSnake(); // Возвращаем змейку на шаг назад
+    } else {
+      // Если снаряд слабее, изменяем цвет звена на цвет снаряда
+      segment.color = bullet.color;
+    }
+    bullets.splice(index, 1); // Удаление снаряда
+  }
+});
+    function rollbackSnake() {
+  if (snake.length > 0) {
+    // Удаляем последний сегмент и уменьшаем индекс пути
+    snake.pop();
+    currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
+  }
+}
 
     // Удаление снаряда за пределами экрана
     if (
