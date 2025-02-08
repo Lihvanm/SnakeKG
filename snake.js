@@ -335,8 +335,27 @@ canvas.addEventListener("touchstart", (event) => {
   isAiming = true;
 });
 canvas.addEventListener("touchmove", (event) => {
-  if
-    // Показать пост-игровые опции
+  if (isAiming) {
+    const touch = event.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    const dx = touchX - (player.x + gridSize / 2);
+    const dy = touchY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("touchend", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Показать пост-игровые опции
 function showPostGameOptions() {
   document.getElementById("postGameOptions").style.display = "flex"; // Показываем кнопки "Начать заново" и "Отправить результат"
   
