@@ -72,7 +72,6 @@
     <button id="loginButton">Войти</button>
   </div>
   <div class="game-buttons" id="gameButtons">
-    <button id="sendResultButton" style="display: none;">Отправить результат</button>
     <div class="faction-selection" id="factionSelection" style="display: none;">
       <button data-faction="fire">Огненный маг</button>
       <button data-faction="ice">Ледяная колдунья</button>
@@ -80,10 +79,7 @@
       <button data-faction="goblin">Гоблин</button>
     </div>
     <button id="startGameButton" style="display: none;">Начать игру</button>
-  </div>
-  <div class="post-game-options" id="postGameOptions">
-    <button id="restartGameButton">Начать заново</button>
-    <button id="sendResultButtonPostGame">Отправить результат</button>
+    <button id="sendResultButton" style="display: none;">Отправить результат</button>
   </div>
   <div class="stats" id="stats"></div>
   <div class="video-container" id="videoContainer">
@@ -93,168 +89,6 @@
     </video>
   </div>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    // Настройки игры
-    const gridSize = 20;
-    const colors = ["red", "green", "blue", "yellow"];
-    let snake = [];
-    let player = { x: canvas.width / 2, y: canvas.height / 2 };
-    let bullets = [];
-    let score = 0;
-    let highScore = 0;
-    let isGameOver = false;
-    let isLoggedIn = false;
-
-    // Управление выстрелом
-    let isAiming = false;
-    let aimDirection = { x: 0, y: 0 };
-    let currentBulletColor = "red";
-    let lastShotTime = 0;
-
-    // Telegram Bot API
-    const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE";
-    const TELEGRAM_CHAT_ID = "-1002382138419";
-
-    // Авторизация
-    document.getElementById("loginButton").addEventListener("click", handleLogin);
-    document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
-    document.getElementById("allianceInput").addEventListener("keydown", handleEnterKey);
-    document.getElementById("serverInput").addEventListener("keydown", handleEnterKey);
-
-    function handleLogin() {
-      const nickname = document.getElementById("nicknameInput").value.trim();
-      const alliance = document.getElementById("allianceInput").value.trim();
-      const serverNumber = document.getElementById("serverInput").value.trim();
-
-      if (nickname && alliance && serverNumber) {
-        isLoggedIn = true;
-        alert(`Добро пожаловать, ${nickname}! Альянс: ${alliance}, Сервер №${serverNumber}`);
-        document.getElementById("authForm").style.display = "none";
-        document.getElementById("gameButtons").style.display = "block";
-        document.getElementById("factionSelection").style.display = "flex";
-        document.getElementById("videoContainer").style.display = "none";
-        loadStats();
-        updateStatsUI(nickname, alliance, serverNumber);
-      } else {
-        alert("Пожалуйста, заполните все поля.");
-      }
-    }
-
-    function handleEnterKey(event) {
-      if (event.key === "Enter") {
-        const inputs = [document.getElementById("nicknameInput"), document.getElementById("allianceInput"), document.getElementById("serverInput")];
-        const currentIndex = inputs.indexOf(event.target);
-
-        if (currentIndex < inputs.length - 1) {
-          inputs[currentIndex + 1].focus();
-        } else {
-          handleLogin();
-        }
-      }
-    }
-
-    // Выбор фракции
-    document.querySelectorAll(".faction-selection button").forEach(button => {
-      button.addEventListener("click", () => {
-        const faction = button.getAttribute("data-faction");
-        switch (faction) {
-          case "fire":
-            currentBulletColor = "red";
-            break;
-          case "ice":
-            currentBulletColor = "blue";
-            break;
-          case "archer":
-            currentBulletColor = "yellow";
-            break;
-          case "goblin":
-            currentBulletColor = "green";
-            break;
-        }
-        document.getElementById("startGameButton").style.display = "block";
-      });
-    });
-
-    // Инициализация змейки
-    const initialX = canvas.width - gridSize;
-    const initialY = 0;
-
-    function initSnake() {
-      snake = [];
-      for (let i = 0; i < 32; i++) {
-        snake.push({ x: initialX, y: initialY, color: colors[i % colors.length] });
-      }
-    }
-
-    // Движение змейки
-    let lastSegmentTime = 0;
-    let spiralStep = 0;
-    const spiralRadius = gridSize;
-
-    function moveSnake() {
-      const currentTime = Date.now();
-
-      if (currentTime - lastSegmentTime >= 1000) {
-        const newSegment = { x: initialX, y: initialY, color: colors[Math.floor(Math.random() * colors.length)] };
-        snake.unshift(newSegment);
-        lastSegmentTime = currentTime;
-      }
-
-      for (let i = snake.length - 1; i > 0; i--) {
-        snake[i].x = snake[i - 1].x;
-        snake[i].y = snake[i - 1].y;
-      }
-
-      moveHead();
-    }
-
-    function moveHead() {
-      const head = snake[0];
-      const angle = (spiralStep * Math.PI) / 180;
-      head.x = initialX + spiralRadius * Math.cos(angle);
-      head.y = initialY + spiralRadius * Math.sin(angle);
-      spiralStep += 1;
-    }
-
-    // Отрисовка змейки
-    function drawSnake() {
-      snake.forEach((segment, index) => {
-        ctx.beginPath();
-        ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = segment.color;
-        ctx.fill();
-        ctx.closePath();
-      });
-    }
-
-    // Остальные функции (стрельба, управление, Telegram-интеграция и т.д.) остаются без изменений.
-
-    // Запуск игры
-    document.getElementById("startGameButton").addEventListener("click", () => {
-      canvas.style.display = "block";
-      initSnake();
-      update();
-      document.getElementById("startGameButton").style.display = "none";
-      document.getElementById("sendResultButton").style.display = "none";
-    });
-
-    function update() {
-      if (!isLoggedIn || isGameOver) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      moveSnake();
-      drawSnake();
-      drawPlayer();
-      drawBullets();
-      drawAimLine();
-      drawStats();
-
-      requestAnimationFrame(update);
-    }
-  </script>
+  <script src="snake.js"></script>
 </body>
 </html>
