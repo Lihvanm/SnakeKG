@@ -3,20 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Змейка-стрелялка</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-    }
-  </style>
+  <title>Змейка</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/three.min.js"></script>
+  <div id="authForm">
+    <input id="nicknameInput" placeholder="Никнейм" />
+    <input id="allianceInput" placeholder="Альянс" />
+    <input id="serverInput" placeholder="Сервер" />
+    <button id="loginButton">Войти</button>
+  </div>
+
+  <div id="videoContainer">
+    <video id="backgroundVideo" autoplay muted loop>
+      <source src="background.mp4" type="video/mp4">
+      Ваш браузер не поддерживает воспроизведение видео.
+    </video>
+  </div>
+
+  <div id="factionSelection" style="display: none;">
+    <button data-faction="fire">Огненный маг</button>
+    <button data-faction="ice">Ледяная колдунья</button>
+    <button data-faction="archer">Лучница</button>
+    <button data-faction="goblin">Гоблин</button>
+  </div>
+
+  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
+  <button id="startGameButton" style="display: none;">Начать игру</button>
+  <div id="stats"></div>
+
+  <div id="postGameOptions" style="display: none;">
+    <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
+  </div>
+
   <script src="game.js"></script>
 </body>
 </html>
