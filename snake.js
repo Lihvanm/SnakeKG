@@ -29,6 +29,8 @@ document.getElementById("loginButton").addEventListener("click", () => {
 
 // Начало игры
 document.getElementById("startGameButton").addEventListener("click", () => {
+  document.getElementById("gifContainer").style.display = "none"; // Скрываем GIF
+  canvas.style.display = "block"; // Показываем холст
   initGame();
   update();
   document.getElementById("startGameButton").style.display = "none";
@@ -36,7 +38,7 @@ document.getElementById("startGameButton").addEventListener("click", () => {
 
 // Инициализация игры
 function initGame() {
-  snake = [{ x: 20, y: 0, color: colors[Math.floor(Math.random() * colors.length)] }]; // Начальная позиция змеи
+  snake = [{ x: canvas.width - gridSize, y: 0, color: colors[Math.floor(Math.random() * colors.length)] }]; // Начальная позиция змеи
   bullets = [];
   score = 0;
   isGameOver = false;
@@ -53,7 +55,9 @@ function drawSnake() {
 // Движение змеи
 function moveSnake() {
   const head = { x: snake[0].x, y: snake[0].y };
-  const radius = Math.sqrt((head.x - canvas.width / 2) ** 2 + (head.y - canvas.height / 2) ** 2);
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius = Math.sqrt((head.x - centerX) ** 2 + (head.y - centerY) ** 2);
 
   // Проверка на приближение к центру
   if (radius <= gridSize) {
@@ -65,7 +69,7 @@ function moveSnake() {
   }
 
   // Вычисление нового направления
-  const angle = Math.atan2(canvas.height / 2 - head.y, canvas.width / 2 - head.x);
+  const angle = Math.atan2(centerY - head.y, centerX - head.x);
   head.x += Math.cos(angle) * gridSize / 15; // Уменьшаем скорость в 15 раз
   head.y += Math.sin(angle) * gridSize / 15;
 
