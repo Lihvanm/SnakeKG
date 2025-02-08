@@ -22,7 +22,12 @@ const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE"; // 
 const TELEGRAM_CHAT_ID = "-1002382138419"; // ID группы Snake_KG
 
 // Авторизация
-document.getElementById("loginButton").addEventListener("click", () => {
+document.getElementById("loginButton").addEventListener("click", handleLogin);
+document.getElementById("nicknameInput").addEventListener("keydown", handleEnterKey);
+document.getElementById("allianceInput").addEventListener("keydown", handleEnterKey);
+document.getElementById("serverInput").addEventListener("keydown", handleEnterKey);
+
+function handleLogin() {
   const nickname = document.getElementById("nicknameInput").value;
   const alliance = document.getElementById("allianceInput").value;
   const serverNumber = document.getElementById("serverInput").value;
@@ -33,12 +38,26 @@ document.getElementById("loginButton").addEventListener("click", () => {
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
     document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
+    document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
     loadStats();
     updateStatsUI(nickname, alliance, serverNumber);
   } else {
     alert("Пожалуйста, заполните все поля.");
   }
-});
+}
+
+function handleEnterKey(event) {
+  if (event.key === "Enter") {
+    const inputs = [document.getElementById("nicknameInput"), document.getElementById("allianceInput"), document.getElementById("serverInput")];
+    const currentIndex = inputs.indexOf(event.target);
+
+    if (currentIndex < inputs.length - 1) {
+      inputs[currentIndex + 1].focus(); // Переходим к следующему полю
+    } else {
+      handleLogin(); // Если это последнее поле, выполняем вход
+    }
+  }
+}
 
 // Выбор фракции
 document.querySelectorAll(".faction-selection button").forEach(button => {
@@ -91,7 +110,6 @@ async function sendTelegramMessage(nickname, alliance, serverNumber, bestScore) 
 
 // Начало игры
 document.getElementById("startGameButton").addEventListener("click", () => {
-  document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
   canvas.style.display = "block"; // Показываем холст
   initGame();
   update();
@@ -154,7 +172,7 @@ function moveSnake() {
     lastSegmentTime = currentTime;
   }
 
-  // Если змейка достигла конца пути
+  // Если змея достигла конца пути
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
     alert("Game Over! Your score: " + score);
@@ -283,69 +301,4 @@ function update() {
   moveSnake();
   drawSnake();
   drawPlayer();
-  drawBullets();
-  drawAimLine(); // Отрисовка направления выстрела
-  drawStats();
-
-  requestAnimationFrame(update);
-}
-
-// Управление мышью или сенсором
-canvas.addEventListener("mousedown", (event) => {
-  isAiming = true;
-});
-canvas.addEventListener("mousemove", (event) => {
-  if (isAiming) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    const dx = mouseX - (player.x + gridSize / 2);
-    const dy = mouseY - (player.y + gridSize / 2);
-    const length = Math.sqrt(dx * dx + dy * dy);
-    aimDirection = { x: dx / length, y: dy / length };
-  }
-});
-canvas.addEventListener("mouseup", () => {
-  const currentTime = Date.now();
-  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
-    shootBullet(aimDirection);
-    isAiming = false;
-    lastShotTime = currentTime;
-  }
-});
-
-// Управление сенсором
-canvas.addEventListener("touchstart", (event) => {
-  isAiming = true;
-});
-canvas.addEventListener("touchmove", (event) => {
-  if (isAiming) {
-    const touch = event.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const touchX = touch.clientX - rect.left;
-    const touchY = touch.clientY - rect.top;
-    const dx = touchX - (player.x + gridSize / 2);
-    const dy = touchY - (player.y + gridSize / 2);
-    const length = Math.sqrt(dx * dx + dy * dy);
-    aimDirection = { x: dx / length, y: dy / length };
-  }
-});
-canvas.addEventListener("touchend", () => {
-  const currentTime = Date.now();
-  if (isAiming && currentTime - lastShotTime >= 500) { // Не более 2 выстрелов в секунду
-    shootBullet(aimDirection);
-    isAiming = false;
-    lastShotTime = currentTime;
-  }
-});
-
-// Отправка результата
-document.getElementById("sendResultButton").addEventListener("click", () => {
-  const nickname = document.getElementById("nicknameInput").value;
-  const alliance = document.getElementById("allianceInput").value;
-  const serverNumber = document.getElementById("serverInput").value;
-  sendTelegramMessage(nickname, alliance, serverNumber, score);
-  saveStats();
-  document.getElementById("sendResultButton").style.display = "none";
-  document.getElementById("startGameButton").style.display = "block";
-});
+  draw
