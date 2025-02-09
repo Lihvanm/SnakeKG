@@ -1,10 +1,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Загрузка изображения змеи
-const snakeImage = new Image();
-snakeImage.src = "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/5c/7b/2c/5c7b2cff-a59c-8c6d-db0d-688197cafaf4/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png";
-
 // Настройки игры
 let gridSize;
 const colors = ["red", "green", "blue", "yellow"];
@@ -149,25 +145,24 @@ function moveHead() {
   spiralStep += 1;
 }
 
-// Отрисовка змейки с использованием изображения
+// Отрисовка змейки
 function drawSnake() {
   snake.forEach((segment, index) => {
-    ctx.save();
-    ctx.translate(segment.x, segment.y);
-    ctx.rotate((spiralStep * Math.PI) / 180);
-    ctx.drawImage(
-      snakeImage,
-      -gridSize / 2, -gridSize / 2,
-      gridSize, gridSize
-    );
-    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
+    ctx.fillStyle = segment.color;
+    ctx.fill();
+    ctx.closePath();
   });
 }
 
-// Отрисовка игрока (стрелок в центре)
+// Отрисовка игрока (смайлик в центре)
 function drawPlayer() {
-  ctx.fillStyle = "white";
-  ctx.fillRect(player.x - gridSize / 2, player.y - gridSize / 2, gridSize, gridSize);
+  ctx.font = `${gridSize}px Arial`;
+  ctx.fillStyle = "yellow";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("😎", player.x, player.y); // Смайлик
 }
 
 // Отрисовка направления выстрела (тонкая стрелка)
@@ -186,3 +181,89 @@ function drawAimLine() {
 }
 
 // Остальные функции (стрельба, управление, Telegram-интеграция и т.д.) остаются без изменений.
+
+// Запуск игры
+document.getElementById("startGameButton").addEventListener("click", () => {
+  canvas.style.display = "block";
+  initSnake();
+  update();
+  document.getElementById("startGameButton").style.display = "none";
+  document.getElementById("sendResultButton").style.display = "block";
+});
+
+// Обновление игры
+function update() {
+  if (!isLoggedIn || isGameOver) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  moveSnake();
+  drawSnake();
+  drawPlayer();
+  drawBullets();
+  drawAimLine();
+  updateStatsUI(
+    document.getElementById("nicknameInput").value.trim(),
+    document.getElementById("allianceInput").value.trim(),
+    document.getElementById("serverInput").value.trim()
+  );
+
+  requestAnimationFrame(update);
+}
+
+// Управление мышью или сенсором
+canvas.addEventListener("mousedown", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("mousemove", (event) => {
+  if (isAiming) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const dx = mouseX - player.x;
+    const dy = mouseY - player.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("mouseup", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) {
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Управление сенсором
+canvas.addEventListener("touchstart", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("touchmove", (event) => {
+  if (isAiming) {
+    const touch = event.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    const dx = touchX - player.x;
+    const dy = touchY - player.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("touchend", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) {
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Кнопка "Отправить результат"
+document.getElementById("sendResultButton").addEventListener("click", () => {
+  const nickname = document.getElementById("nicknameInput").value.trim();
+  const alliance = document.getElementById("allianceInput").value.trim();
+  const serverNumber = document.getElementById("serverInput").value.trim();
+  sendTelegramMessage(nickname, alliance, serverNumber, score);
+});
