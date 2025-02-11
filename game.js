@@ -301,4 +301,5 @@ function saveStats() {
 
 // Загрузка статистики из localStorage
 function loadStats() {
-  highScore = parseInt
+  highScore = parseInt(localStorage.getItem("highScore")) || 0;
+}
