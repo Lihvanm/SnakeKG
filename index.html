@@ -1,38 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snake KG</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Змея</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    canvas {
+      display: none; /* Холст скрыт до начала игры */
+      border: 2px solid #fff;
+      background-color: #000;
+    }
+    #authForm, #factionSelection, #postGameOptions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    input {
+      margin: 5px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    #stats {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Форма авторизации -->
   <div id="authForm">
-    <h1>Войти</h1>
+    <h1>Авторизация</h1>
     <input type="text" id="nicknameInput" placeholder="Никнейм">
     <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Сервер">
+    <input type="text" id="serverInput" placeholder="Номер сервера">
     <button id="loginButton">Войти</button>
   </div>
 
+  <!-- Выбор фракции -->
   <div id="factionSelection" style="display: none;">
     <h1>Выберите фракцию</h1>
-    <button data-faction="fire">Огненный маг</button>
-    <button data-faction="ice">Ледяная колдунья</button>
-    <button data-faction="archer">Лучница</button>
-    <button data-faction="goblin">Гоблин</button>
+    <button data-faction="fire">Огонь (Красный)</button>
+    <button data-faction="ice">Лед (Синий)</button>
+    <button data-faction="archer">Лучник (Желтый)</button>
+    <button data-faction="goblin">Гоблин (Зеленый)</button>
   </div>
 
-  <div id="gameContainer" style="display: none;">
-    <canvas id="gameCanvas" width="640" height="640"></canvas>
-    <div id="stats"></div>
+  <!-- Кнопки управления игрой -->
+  <div id="gameButtons" style="display: none;">
+    <button id="startGameButton">Начать игру</button>
+    <button id="sendResultButton" style="display: none;">Отправить результат</button>
   </div>
 
+  <!-- Холст для игры -->
+  <canvas id="gameCanvas" width="640" height="640"></canvas>
+
+  <!-- Пост-игровые опции -->
   <div id="postGameOptions" style="display: none;">
+    <h1>Игра окончена!</h1>
     <button id="restartGameButton">Начать заново</button>
     <button id="sendResultButtonPostGame">Отправить результат</button>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Статистика -->
+  <div id="stats"></div>
+
+  <!-- Подключение скрипта -->
+  <script src="game.js"></script>
 </body>
 </html>
