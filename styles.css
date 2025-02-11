@@ -1,23 +1,37 @@
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
   margin: 0;
-  padding: 0;
-  background-color: #f0f0f0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
 }
 
-#authForm, #factionSelection, #postGameOptions {
-  margin-top: 50px;
+#authForm, #factionSelection, #gameButtons, #postGameOptions {
+  display: none;
 }
 
-canvas {
-  border: 2px solid black;
-  background-color: #fff;
+#authForm input {
+  margin: 5px;
+  padding: 10px;
+  font-size: 16px;
 }
 
 button {
-  margin: 10px;
   padding: 10px 20px;
   font-size: 16px;
+  margin: 5px;
   cursor: pointer;
+}
+
+canvas {
+  border: 2px solid #fff;
+  display: none;
+}
+
+.hidden {
+  display: none !important;
 }
