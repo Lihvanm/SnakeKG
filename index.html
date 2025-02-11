@@ -4,44 +4,43 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    canvas {
+      display: none;
+      border: 1px solid black;
+    }
+    #authForm, #factionSelection, #postGameOptions {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <!-- Форма авторизации -->
   <div id="authForm">
-    <input type="text" id="nicknameInput" placeholder="Никнейм">
-    <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Сервер">
+    <input id="nicknameInput" placeholder="Никнейм">
+    <input id="allianceInput" placeholder="Альянс">
+    <input id="serverInput" placeholder="Сервер">
     <button id="loginButton">Войти</button>
   </div>
 
-  <!-- Выбор фракции -->
-  <div id="factionSelection" class="hidden">
-    <button data-faction="fire">Fire</button>
-    <button data-faction="ice">Ice</button>
-    <button data-faction="archer">Archer</button>
-    <button data-faction="goblin">Goblin</button>
+  <div id="factionSelection">
+    <button data-faction="fire">Огненный маг</button>
+    <button data-faction="ice">Ледяная колдунья</button>
+    <button data-faction="archer">Лучница</button>
+    <button data-faction="goblin">Гоблин</button>
   </div>
 
-  <!-- Кнопки управления игрой -->
-  <div id="gameButtons" class="hidden">
-    <button id="startGameButton">Начать игру</button>
-    <button id="sendResultButton" class="hidden">Отправить результат</button>
-  </div>
+  <button id="startGameButton" style="display: none;">Начать игру</button>
+  <button id="sendResultButton" style="display: none;">Отправить результат</button>
 
-  <!-- Игровое поле -->
   <canvas id="gameCanvas" width="640" height="640"></canvas>
 
-  <!-- Статистика -->
-  <div id="stats"></div>
-
-  <!-- Пост-игровые опции -->
-  <div id="postGameOptions" class="hidden">
+  <div id="postGameOptions" style="display: none;">
     <button id="restartGameButton">Начать заново</button>
     <button id="sendResultButtonPostGame">Отправить результат</button>
   </div>
 
-  <script src="auth.js"></script>
+  <div id="stats"></div>
+
   <script src="game.js"></script>
 </body>
 </html>
