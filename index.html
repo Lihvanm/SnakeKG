@@ -1,91 +1,47 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #000;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    canvas {
-      display: none; /* Холст скрыт до начала игры */
-      border: 2px solid #fff;
-      background-color: #000;
-    }
-    #authForm, #factionSelection, #postGameOptions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 20px;
-    }
-    input {
-      margin: 5px;
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    #stats {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    /* Фон из GIF */
-    body {
-      background-image: url("https://cdn.glitch.global/e4754671-729d-42eb-906c-d8610131bf14/snakegif.gif?v=1739269457392");
-      background-size: cover;
-      background-position: center;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <!-- Форма авторизации -->
   <div id="authForm">
-    <h1>Авторизация</h1>
     <input type="text" id="nicknameInput" placeholder="Никнейм">
     <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Номер сервера">
+    <input type="text" id="serverInput" placeholder="Сервер">
     <button id="loginButton">Войти</button>
   </div>
 
   <!-- Выбор фракции -->
-  <div id="factionSelection" style="display: none;">
-    <h1>Выберите фракцию</h1>
-    <button data-faction="fire">Огонь (Красный)</button>
-    <button data-faction="ice">Лед (Синий)</button>
-    <button data-faction="archer">Лучник (Желтый)</button>
-    <button data-faction="goblin">Гоблин (Зеленый)</button>
+  <div id="factionSelection" class="hidden">
+    <button data-faction="fire">Fire</button>
+    <button data-faction="ice">Ice</button>
+    <button data-faction="archer">Archer</button>
+    <button data-faction="goblin">Goblin</button>
   </div>
 
   <!-- Кнопки управления игрой -->
-  <div id="gameButtons" style="display: none;">
+  <div id="gameButtons" class="hidden">
     <button id="startGameButton">Начать игру</button>
-    <button id="sendResultButton" style="display: none;">Отправить результат</button>
+    <button id="sendResultButton" class="hidden">Отправить результат</button>
   </div>
 
-  <!-- Холст для игры -->
+  <!-- Игровое поле -->
   <canvas id="gameCanvas" width="640" height="640"></canvas>
-
-  <!-- Пост-игровые опции -->
-  <div id="postGameOptions" style="display: none;">
-    <h1>Игра окончена!</h1>
-    <button id="restartGameButton">Начать заново</button>
-    <button id="sendResultButtonPostGame">Отправить результат</button>
-  </div>
 
   <!-- Статистика -->
   <div id="stats"></div>
 
-  <!-- Подключение скрипта -->
+  <!-- Пост-игровые опции -->
+  <div id="postGameOptions" class="hidden">
+    <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
+  </div>
+
+  <script src="auth.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
