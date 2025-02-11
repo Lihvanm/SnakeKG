@@ -20,8 +20,8 @@ let aimDirection = { x: 0, y: 0 }; // Направление прицелива�
 let currentBulletColor = "red"; // Цвет снаряда по умолчанию
 
 // Telegram Bot API
-const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE";
-const TELEGRAM_CHAT_ID = "-1002382138419";
+const TELEGRAM_BOT_TOKEN = "7763147422:AAGPWCetxPUsAuhvCknqVFrZId_r0BPSEhE"; // Токен вашего бота
+const TELEGRAM_CHAT_ID = "-1002382138419"; // ID группы Snake_KG
 
 // Авторизация
 document.getElementById("loginButton").addEventListener("click", handleLogin);
@@ -39,7 +39,6 @@ function handleLogin() {
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
     document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
-    document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
     loadStats();
     updateStatsUI(nickname, alliance, serverNumber);
   } else {
@@ -60,7 +59,7 @@ function handleEnterKey(event) {
 }
 
 // Выбор фракции
-document.querySelectorAll(".faction-selection button").forEach(button => {
+document.querySelectorAll("#factionSelection button").forEach(button => {
   button.addEventListener("click", () => {
     const faction = button.getAttribute("data-faction");
     switch (faction) {
@@ -77,9 +76,8 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
         currentBulletColor = "green";
         break;
     }
-    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
-    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
-    document.getElementById("startGameButton").classList.add(currentBulletColor); // Добавляем цвет кнопке
+    document.getElementById("factionSelection").style.display = "none";
+    document.getElementById("startGameButton").style.display = "block";
   });
 });
 
@@ -135,49 +133,40 @@ let currentSegmentIndex = 0;
 let lastSegmentTime = 0;
 
 function generateSnakePath() {
-  let x = canvasSize - gridSize / 2; // Начальная точка (правый верхний угол)
-  let y = gridSize / 2;
-  let direction = "left"; // Начальное направление движения
-  let steps = 8; // Количество шагов в текущем направлении
-  let stepCount = 0; // Счетчик шагов
-  while (snakePath.length < 81) {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
+  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5]; // Количество сегментов на каждый круг
+  for (let i = 0; i < segmentsPerCircle.length; i++) {
+    const segments = segmentsPerCircle[i];
+    const angleStep = (2 * Math.PI) / segments;
+    for (let j = 0; j < segments; j++) {
+      const angle = j * angleStep;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      snakePath.push({ x: x, y: y });
+    }
+    radius -= gridSize; // Уменьшаем радиус для следующего круга
+  }
+  // Добавляем финальные шаги к центру
+  for (let i = 0; i < 5; i++) {
+    const x = centerX + (radius - i * gridSize) * Math.cos(0);
+    const y = centerY + (radius - i * gridSize) * Math.sin(0);
     snakePath.push({ x: x, y: y });
-    if (direction === "left") {
-      x -= gridSize;
-    } else if (direction === "down") {
-      y += gridSize;
-    } else if (direction === "right") {
-      x += gridSize;
-    } else if (direction === "up") {
-      y -= gridSize;
-    }
-    stepCount++;
-    if (stepCount === steps) {
-      stepCount = 0;
-      if (direction === "left") {
-        direction = "down";
-      } else if (direction === "down") {
-        direction = "right";
-        steps--; // Уменьшаем количество шагов для следующего круга
-      } else if (direction === "right") {
-        direction = "up";
-      } else if (direction === "up") {
-        direction = "left";
-        steps--; // Уменьшаем количество шагов для следующего круга
-      }
-    }
   }
 }
 
-// Движение змейки
+// Движение змеи
 function moveSnake() {
   const currentTime = Date.now();
+  // Добавляем новый сегмент каждую секунду
   if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
     const newSegment = { ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] };
     snake.unshift(newSegment);
     currentSegmentIndex++;
     lastSegmentTime = currentTime;
   }
+  // Если змея достигла конца пути
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
     showPostGameOptions();
@@ -185,11 +174,11 @@ function moveSnake() {
   }
 }
 
-// Отрисовка змейки
+// Отрисовка змеи
 function drawSnake() {
   snake.forEach((segment, index) => {
     ctx.beginPath();
-    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2); // Рисуем круглые сегменты
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
@@ -219,7 +208,6 @@ function drawAimLine() {
 
 // Стрельба
 let lastShotTime = 0; // Время последнего выстрела
-
 function shootBullet(direction) {
   const bullet = {
     x: player.x,
@@ -248,12 +236,18 @@ function drawBullets() {
         bullet.y + gridSize / 2 > segment.y
       ) {
         if (bullet.color === segment.color) {
+          // Если цвета совпадают, превращаем звено в слабый цвет
           segment.color = getWeakColor(segment.color);
         } else if (isStrongerColor(bullet.color, segment.color)) {
+          // Если снаряд сильнее, удаляем звено
           snake.splice(segIndex, 1);
           score++;
-          rollbackSnake();
+          // Возвращаем голову змейки на одно звено назад
+          if (snake.length > 0) {
+            rollbackSnake();
+          }
         } else {
+          // Если снаряд слабее, изменяем цвет звена на цвет снаряда
           segment.color = bullet.color;
         }
         bullets.splice(index, 1); // Удаление снаряда
