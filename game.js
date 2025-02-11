@@ -39,6 +39,7 @@ function handleLogin() {
     document.getElementById("authForm").style.display = "none"; // Скрываем форму авторизации
     document.getElementById("gameButtons").style.display = "block"; // Показываем кнопки
     document.getElementById("factionSelection").style.display = "flex"; // Показываем выбор фракции
+    document.getElementById("videoContainer").style.display = "none"; // Скрываем видео
     loadStats();
     updateStatsUI(nickname, alliance, serverNumber);
   } else {
@@ -48,7 +49,11 @@ function handleLogin() {
 
 function handleEnterKey(event) {
   if (event.key === "Enter") {
-    const inputs = [document.getElementById("nicknameInput"), document.getElementById("allianceInput"), document.getElementById("serverInput")];
+    const inputs = [
+      document.getElementById("nicknameInput"),
+      document.getElementById("allianceInput"),
+      document.getElementById("serverInput"),
+    ];
     const currentIndex = inputs.indexOf(event.target);
     if (currentIndex < inputs.length - 1) {
       inputs[currentIndex + 1].focus(); // Переходим к следующему полю
@@ -59,7 +64,7 @@ function handleEnterKey(event) {
 }
 
 // Выбор фракции
-document.querySelectorAll("#factionSelection button").forEach(button => {
+document.querySelectorAll(".faction-selection button").forEach((button) => {
   button.addEventListener("click", () => {
     const faction = button.getAttribute("data-faction");
     switch (faction) {
@@ -76,7 +81,6 @@ document.querySelectorAll("#factionSelection button").forEach(button => {
         currentBulletColor = "green";
         break;
     }
-    document.getElementById("factionSelection").style.display = "none";
     document.getElementById("startGameButton").style.display = "block";
   });
 });
@@ -112,8 +116,8 @@ document.getElementById("startGameButton").addEventListener("click", () => {
   canvas.style.display = "block"; // Показываем холст
   initGame();
   update();
-  document.getElementById("startGameButton").style.display = "none";
-  document.getElementById("sendResultButton").style.display = "none";
+  document.getElementById("startGameButton").style.display = "none"; // Скрываем кнопку
+  document.getElementById("sendResultButton").style.display = "none"; // Скрываем кнопку отправки результата
 });
 
 // Инициализация игры
@@ -133,40 +137,49 @@ let currentSegmentIndex = 0;
 let lastSegmentTime = 0;
 
 function generateSnakePath() {
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  let radius = Math.min(canvas.width, canvas.height) / 2 - gridSize; // Начальный радиус
-  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5]; // Количество сегментов на каждый круг
-  for (let i = 0; i < segmentsPerCircle.length; i++) {
-    const segments = segmentsPerCircle[i];
-    const angleStep = (2 * Math.PI) / segments;
-    for (let j = 0; j < segments; j++) {
-      const angle = j * angleStep;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      snakePath.push({ x: x, y: y });
-    }
-    radius -= gridSize; // Уменьшаем радиус для следующего круга
-  }
-  // Добавляем финальные шаги к центру
-  for (let i = 0; i < 5; i++) {
-    const x = centerX + (radius - i * gridSize) * Math.cos(0);
-    const y = centerY + (radius - i * gridSize) * Math.sin(0);
+  let x = canvasSize - gridSize / 2; // Начальная точка (правый верхний угол)
+  let y = gridSize / 2;
+  let direction = "left"; // Начальное направление движения
+  let steps = 8; // Количество шагов в текущем направлении
+  let stepCount = 0; // Счетчик шагов
+  while (snakePath.length < 81) {
     snakePath.push({ x: x, y: y });
+    if (direction === "left") {
+      x -= gridSize;
+    } else if (direction === "down") {
+      y += gridSize;
+    } else if (direction === "right") {
+      x += gridSize;
+    } else if (direction === "up") {
+      y -= gridSize;
+    }
+    stepCount++;
+    if (stepCount === steps) {
+      stepCount = 0;
+      if (direction === "left") {
+        direction = "down";
+      } else if (direction === "down") {
+        direction = "right";
+        steps--; // Уменьшаем количество шагов для следующего круга
+      } else if (direction === "right") {
+        direction = "up";
+      } else if (direction === "up") {
+        direction = "left";
+        steps--; // Уменьшаем количество шагов для следующего круга
+      }
+    }
   }
 }
 
-// Движение змеи
+// Движение змейки
 function moveSnake() {
   const currentTime = Date.now();
-  // Добавляем новый сегмент каждую секунду
   if (currentTime - lastSegmentTime >= 1000 && currentSegmentIndex < snakePath.length) {
     const newSegment = { ...snakePath[currentSegmentIndex], color: colors[Math.floor(Math.random() * colors.length)] };
     snake.unshift(newSegment);
     currentSegmentIndex++;
     lastSegmentTime = currentTime;
   }
-  // Если змея достигла конца пути
   if (currentSegmentIndex >= snakePath.length) {
     isGameOver = true;
     showPostGameOptions();
@@ -174,11 +187,11 @@ function moveSnake() {
   }
 }
 
-// Отрисовка змеи
+// Отрисовка змейки
 function drawSnake() {
   snake.forEach((segment, index) => {
     ctx.beginPath();
-    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2);
+    ctx.arc(segment.x, segment.y, gridSize / 2, 0, Math.PI * 2); // Рисуем круглые сегменты
     ctx.fillStyle = segment.color;
     ctx.fill();
     ctx.closePath();
@@ -208,13 +221,14 @@ function drawAimLine() {
 
 // Стрельба
 let lastShotTime = 0; // Время последнего выстрела
+
 function shootBullet(direction) {
   const bullet = {
     x: player.x,
     y: player.y,
     dx: direction.x,
     dy: direction.y,
-    color: currentBulletColor
+    color: currentBulletColor,
   };
   bullets.push(bullet);
 }
@@ -236,18 +250,12 @@ function drawBullets() {
         bullet.y + gridSize / 2 > segment.y
       ) {
         if (bullet.color === segment.color) {
-          // Если цвета совпадают, превращаем звено в слабый цвет
           segment.color = getWeakColor(segment.color);
         } else if (isStrongerColor(bullet.color, segment.color)) {
-          // Если снаряд сильнее, удаляем звено
           snake.splice(segIndex, 1);
           score++;
-          // Возвращаем голову змейки на одно звено назад
-          if (snake.length > 0) {
-            rollbackSnake();
-          }
+          rollbackSnake();
         } else {
-          // Если снаряд слабее, изменяем цвет звена на цвет снаряда
           segment.color = bullet.color;
         }
         bullets.splice(index, 1); // Удаление снаряда
@@ -274,14 +282,13 @@ function getWeakColor(color) {
 
 // Проверка силы цвета (синий > красный > желтый > зеленый > синий)
 function isStrongerColor(attacker, target) {
-  const hierarchy = { blue: 'red', red: 'yellow', yellow: 'green', green: 'blue' };
+  const hierarchy = { blue: "red", red: "yellow", yellow: "green", green: "blue" };
   return hierarchy[attacker] === target;
 }
 
 // Обновление змейки при откате головы
 function rollbackSnake() {
   if (snake.length > 0) {
-    // Удаляем последний сегмент и уменьшаем индекс пути
     snake.pop();
     currentSegmentIndex = Math.max(0, currentSegmentIndex - 1);
   }
@@ -303,3 +310,95 @@ function saveStats() {
 function loadStats() {
   highScore = parseInt(localStorage.getItem("highScore")) || 0;
 }
+
+// Обновление игры
+function update() {
+  if (!isLoggedIn || isGameOver) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  moveSnake();
+  drawSnake();
+  drawPlayer();
+  drawBullets();
+  drawAimLine(); // Отрисовка направления выстрела
+  drawStats();
+  requestAnimationFrame(update);
+}
+
+// Управление мышью или сенсором
+canvas.addEventListener("mousedown", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("mousemove", (event) => {
+  if (isAiming) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const dx = mouseX - (player.x + gridSize / 2);
+    const dy = mouseY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("mouseup", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) {
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Управление сенсором
+canvas.addEventListener("touchstart", (event) => {
+  isAiming = true;
+});
+canvas.addEventListener("touchmove", (event) => {
+  if (isAiming) {
+    const touch = event.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    const dx = touchX - (player.x + gridSize / 2);
+    const dy = touchY - (player.y + gridSize / 2);
+    const length = Math.sqrt(dx * dx + dy * dy);
+    aimDirection = { x: dx / length, y: dy / length };
+  }
+});
+canvas.addEventListener("touchend", () => {
+  const currentTime = Date.now();
+  if (isAiming && currentTime - lastShotTime >= 500) {
+    shootBullet(aimDirection);
+    isAiming = false;
+    lastShotTime = currentTime;
+  }
+});
+
+// Показать пост-игровые опции
+function showPostGameOptions() {
+  document.getElementById("postGameOptions").style.display = "flex"; // Показываем кнопки "Начать заново" и "Отправить результат"
+  setTimeout(() => {
+    const nickname = document.getElementById("nicknameInput").value.trim();
+    const alliance = document.getElementById("allianceInput").value.trim();
+    const serverNumber = document.getElementById("serverInput").value.trim();
+    sendTelegramMessage(nickname, alliance, serverNumber, score);
+    saveStats();
+  }, 60000); // 60 секунд (1 минута)
+}
+
+// Кнопка "Начать заново"
+document.getElementById("restartGameButton").addEventListener("click", () => {
+  document.getElementById("postGameOptions").style.display = "none"; // Скрываем пост-игровые опции
+  initGame(); // Инициализируем игру заново
+  update(); // Запускаем игровой цикл
+});
+
+// Кнопка "Отправить результат" в пост-игровых опциях
+document.getElementById("sendResultButtonPostGame").addEventListener("click", () => {
+  const nickname = document.getElementById("nicknameInput").value.trim();
+  const alliance = document.getElementById("allianceInput").value.trim();
+  const serverNumber = document.getElementById("serverInput").value.trim();
+  sendTelegramMessage(nickname, alliance, serverNumber, score);
+  saveStats();
+  document.getElementById("postGameOptions").style.display = "none"; // Скрываем пост-игровые опции
+  document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
+});
