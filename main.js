@@ -1,112 +1,159 @@
-// Инициализация сцены, камеры и рендера
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
-renderer.setSize(window.innerWidth, window.innerHeight);
+// Импорт Babylon.js
+const canvas = document.getElementById("renderCanvas");
+const engine = new BABYLON.Engine(canvas, true);
 
-// Освещение
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(10, 10, 10).normalize();
-scene.add(light);
+// Создание сцены
+const createScene = () => {
+  const scene = new BABYLON.Scene(engine);
 
-// Платформа
-const groundGeometry = new THREE.PlaneGeometry(10, 10);
-const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
-const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-ground.rotation.x = -Math.PI / 2;
-scene.add(ground);
+  // Камера в центре, змейка двигается вокруг
+  const camera = new BABYLON.UniversalCamera(
+    "camera",
+    new BABYLON.Vector3(0, 2, 0),
+    scene
+  );
+  camera.attachControl(canvas, true);
+  camera.rotation.y = Math.PI; // Поворачиваем камеру назад
 
-// Игрок
-const playerGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-const playerMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-const player = new THREE.Mesh(playerGeometry, playerMaterial);
-player.position.set(0, 0.25, 0);
-scene.add(player);
+  // Свет
+  const light = new BABYLON.HemisphericLight(
+    "light",
+    new BABYLON.Vector3(0, 1, 0),
+    scene
+  );
 
-// Змея
-let snake = [];
-const snakeColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
-function createSnakeSegment(position) {
-  const segmentGeometry = new THREE.SphereGeometry(0.25, 16, 16);
-  const segmentMaterial = new THREE.MeshStandardMaterial({ color: snakeColors[Math.floor(Math.random() * snakeColors.length)] });
-  const segment = new THREE.Mesh(segmentGeometry, segmentMaterial);
-  segment.position.copy(position);
-  scene.add(segment);
-  return segment;
-}
+  // Земля
+  const ground = BABYLON.MeshBuilder.CreateGround(
+    "ground",
+    { width: 20, height: 20 },
+    scene
+  );
+  const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
+  groundMat.diffuseColor = new BABYLON.Color3(0.2, 0.8, 0.2);
+  ground.material = groundMat;
 
-// Генерация змейки
-function generateSnakePath() {
-  const centerX = 0;
-  const centerY = 0;
-  let radius = 4; // Начальный радиус
-  let segmentsPerCircle = [9, 8, 8, 7, 6, 6, 5]; // Количество сегментов на каждый круг
+  // Небо
+  const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 100 }, scene);
+  const skyMat = new BABYLON.StandardMaterial("skyMat", scene);
+  skyMat.backFaceCulling = false;
+  skyMat.diffuseColor = new BABYLON.Color3(0.5, 0.7, 1);
+  skybox.material = skyMat;
 
-  for (let i = 0; i < segmentsPerCircle.length; i++) {
-    const segments = segmentsPerCircle[i];
-    const angleStep = (2 * Math.PI) / segments;
-    for (let j = 0; j < segments; j++) {
-      const angle = j * angleStep;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      snake.push(createSnakeSegment(new THREE.Vector3(x, 0.25, y)));
-    }
-    radius -= 0.5; // Уменьшаем радиус для следующего круга
+  // Игрок (стреляющий объект)
+  const shooter = BABYLON.MeshBuilder.CreatePlane(
+    "shooter",
+    { width: 2, height: 2 },
+    scene
+  );
+  shooter.position = new BABYLON.Vector3(0, 1, -4);
+  shooter.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+  const shooterMat = new BABYLON.StandardMaterial("shooterMat", scene);
+  shooterMat.diffuseTexture = new BABYLON.Texture(
+    "https://cdn.glitch.global/e4754671-729d-42eb-906c-d8610131bf14/shooter_texture.png?v=1739325335302",
+    scene
+  );
+  shooter.material = shooterMat;
+
+  // Змейка (массив сегментов)
+  let snake = [];
+  const colors = [
+    new BABYLON.Color3(1, 0, 0), // red
+    new BABYLON.Color3(0, 1, 0), // green
+    new BABYLON.Color3(0, 0, 1), // blue
+    new BABYLON.Color3(1, 1, 0), // yellow
+  ];
+  const snakeLength = 10;
+  for (let i = 0; i < snakeLength; i++) {
+    let segment = BABYLON.MeshBuilder.CreateSphere(
+      "segment" + i,
+      { diameter: 1 },
+      scene
+    );
+    segment.material = new BABYLON.StandardMaterial("segmentMat" + i, scene);
+    segment.material.diffuseColor = colors[Math.floor(Math.random() * colors.length)];
+    snake.push(segment);
   }
-}
 
-generateSnakePath();
+  // Движение змейки вокруг центра
+  let angle = 0;
+  let speed = 0.02;
+  scene.onBeforeRenderObservable.add(() => {
+    angle += speed;
+    let radius = 5;
+    let headX = Math.cos(angle) * radius;
+    let headZ = Math.sin(angle) * radius;
+    for (let i = snake.length - 1; i > 0; i--) {
+      snake[i].position = snake[i - 1].position.clone();
+    }
+    snake[0].position.x = headX;
+    snake[0].position.z = headZ;
+  });
 
-// Снаряды
-let bullets = [];
-function shootBullet(direction) {
-  const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-  const bulletMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-  const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-  bullet.position.copy(player.position);
-  bullets.push({ mesh: bullet, direction });
-  scene.add(bullet);
-}
+  // Снаряды
+  let bullets = [];
+  let isAiming = false;
+  let aimDirection = new BABYLON.Vector3();
 
-// Обновление игры
-function update() {
-  // Перемещение снарядов
-  bullets.forEach((bullet, index) => {
-    bullet.mesh.position.addScaledVector(bullet.direction, 0.1);
-    // Удаление снаряда за пределами экрана
-    if (bullet.mesh.position.length() > 10) {
-      scene.remove(bullet.mesh);
-      bullets.splice(index, 1);
+  // Управление мышью
+  canvas.addEventListener("mousedown", (event) => {
+    isAiming = true;
+  });
+  canvas.addEventListener("mousemove", (event) => {
+    if (isAiming) {
+      const pickInfo = scene.pick(scene.pointerX, scene.pointerY);
+      if (pickInfo.hit) {
+        aimDirection = pickInfo.pickedPoint.subtract(shooter.position).normalize();
+      }
+    }
+  });
+  canvas.addEventListener("mouseup", () => {
+    if (isAiming) {
+      shootBullet(aimDirection);
+      isAiming = false;
     }
   });
 
-  renderer.render(scene, camera);
-  requestAnimationFrame(update);
-}
-
-// Управление
-let isAiming = false;
-let aimDirection = new THREE.Vector3();
-document.addEventListener("mousedown", () => (isAiming = true));
-document.addEventListener("mousemove", (event) => {
-  if (isAiming) {
-    const mouse = new THREE.Vector2(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
+  // Стрельба
+  function shootBullet(direction) {
+    const bullet = BABYLON.MeshBuilder.CreateSphere(
+      "bullet",
+      { diameter: 0.2 },
+      scene
     );
-    aimDirection.set(mouse.x, 0, mouse.y).normalize();
+    bullet.position = shooter.position.clone();
+    bullet.material = new BABYLON.StandardMaterial("bulletMat", scene);
+    bullet.material.diffuseColor = new BABYLON.Color3(1, 0, 0); // Цвет снаряда
+    bullets.push({ mesh: bullet, direction });
   }
-});
-document.addEventListener("mouseup", () => {
-  if (isAiming) {
-    shootBullet(aimDirection);
-    isAiming = false;
-  }
-});
 
-// Позиционирование камеры
-camera.position.set(0, 5, 10);
-camera.lookAt(0, 0, 0);
+  // Обновление снарядов
+  scene.onBeforeRenderObservable.add(() => {
+    bullets.forEach((bullet, index) => {
+      bullet.mesh.position.addInPlace(bullet.direction.scale(0.1));
+      // Проверка столкновений
+      snake.forEach((segment, segIndex) => {
+        if (bullet.mesh.intersectsMesh(segment)) {
+          segment.dispose(); // Уничтожение сегмента
+          snake.splice(segIndex, 1);
+          bullet.mesh.dispose();
+          bullets.splice(index, 1);
+        }
+      });
+      // Удаление снарядов за пределами экрана
+      if (bullet.mesh.position.length() > 10) {
+        bullet.mesh.dispose();
+        bullets.splice(index, 1);
+      }
+    });
+  });
 
-// Запуск игры
-update();
+  return scene;
+};
+
+const scene = createScene();
+engine.runRenderLoop(() => {
+  scene.render();
+});
+window.addEventListener("resize", () => {
+  engine.resize();
+});
