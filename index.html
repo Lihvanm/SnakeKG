@@ -21,13 +21,6 @@
       border: 2px solid white;
       background-color: black;
     }
-    #factionSelection {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-top: 20px;
-    }
     button {
       padding: 10px 20px;
       background-color: #4CAF50;
@@ -38,6 +31,13 @@
     button:hover {
       background-color: #45a049;
     }
+    #factionSelection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
     #stats {
       margin-top: 20px;
       font-size: 18px;
@@ -45,8 +45,17 @@
   </style>
 </head>
 <body>
+  <!-- Форма авторизации -->
+  <div id="authForm">
+    <h2>Авторизация</h2>
+    <input type="text" id="nicknameInput" placeholder="Никнейм" />
+    <input type="text" id="allianceInput" placeholder="Альянс" />
+    <input type="text" id="serverInput" placeholder="Сервер" />
+    <button id="loginButton">Войти</button>
+  </div>
+
   <!-- Выбор фракции -->
-  <div id="factionSelection">
+  <div id="factionSelection" style="display: none;">
     <h2>Выберите фракцию</h2>
     <div class="faction-selection">
       <button data-faction="fire">Fire (Red)</button>
@@ -68,6 +77,7 @@
   <div id="postGameOptions" style="display: none;">
     <h2>Игра окончена!</h2>
     <button id="restartGameButton">Начать заново</button>
+    <button id="sendResultButtonPostGame">Отправить результат</button>
   </div>
 
   <!-- Статистика -->
