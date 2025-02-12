@@ -21,7 +21,7 @@
       border: 2px solid white;
       background-color: black;
     }
-    #authForm, #factionSelection, #postGameOptions {
+    #factionSelection {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -45,17 +45,8 @@
   </style>
 </head>
 <body>
-  <!-- Форма авторизации -->
-  <div id="authForm">
-    <h2>Авторизация</h2>
-    <input type="text" id="nicknameInput" placeholder="Никнейм">
-    <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Сервер">
-    <button id="loginButton">Войти</button>
-  </div>
-
   <!-- Выбор фракции -->
-  <div id="factionSelection" style="display: none;">
+  <div id="factionSelection">
     <h2>Выберите фракцию</h2>
     <div class="faction-selection">
       <button data-faction="fire">Fire (Red)</button>
@@ -68,7 +59,6 @@
   <!-- Игровые кнопки -->
   <div id="gameButtons" style="display: none;">
     <button id="startGameButton">Начать игру</button>
-    <button id="sendResultButton" style="display: none;">Отправить результат</button>
   </div>
 
   <!-- Холст для игры -->
@@ -78,7 +68,6 @@
   <div id="postGameOptions" style="display: none;">
     <h2>Игра окончена!</h2>
     <button id="restartGameButton">Начать заново</button>
-    <button id="sendResultButtonPostGame">Отправить результат</button>
   </div>
 
   <!-- Статистика -->
