@@ -4,63 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #000;
-      color: white;
-    }
-    canvas {
-      display: none;
-      border: 2px solid white;
-    }
-    #authForm, #factionSelection, #postGameOptions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 20px;
-    }
-    #stats {
-      margin-top: 10px;
-      font-size: 18px;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <!-- Форма авторизации -->
   <div id="authForm">
-    <input type="text" id="nicknameInput" placeholder="Никнейм">
-    <input type="text" id="allianceInput" placeholder="Альянс">
-    <input type="text" id="serverInput" placeholder="Сервер">
+    <input id="nicknameInput" placeholder="Ник">
+    <input id="allianceInput" placeholder="Альянс">
+    <input id="serverInput" placeholder="Сервер">
     <button id="loginButton">Войти</button>
   </div>
 
   <!-- Выбор фракции -->
   <div id="factionSelection" style="display: none;">
-    <button data-faction="fire">Fire</button>
-    <button data-faction="ice">Ice</button>
-    <button data-faction="archer">Archer</button>
-    <button data-faction="goblin">Goblin</button>
+    <button data-faction="fire">Огненный маг</button>
+    <button data-faction="ice">Ледяная колдунья</button>
+    <button data-faction="archer">Лучница</button>
+    <button data-faction="goblin">Гоблин</button>
   </div>
 
-  <!-- Кнопки управления игрой -->
-  <button id="startGameButton" style="display: none;">Начать игру</button>
-  <button id="sendResultButton" style="display: none;">Отправить результат</button>
+  <!-- Кнопка "Начать игру" -->
+  <div id="startGameContainer" style="display: none;">
+    <button id="startGameButton">Начать игру</button>
+  </div>
 
-  <!-- Игровой холст -->
-  <canvas id="gameCanvas" width="640" height="640"></canvas>
+  <!-- Игровое поле -->
+  <canvas id="gameCanvas" width="640" height="640" style="display: none;"></canvas>
 
   <!-- Статистика -->
   <div id="stats"></div>
@@ -71,7 +40,6 @@
     <button id="sendResultButtonPostGame">Отправить результат</button>
   </div>
 
-  <!-- Подключение скрипта -->
   <script src="game.js"></script>
 </body>
 </html>
