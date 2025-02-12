@@ -58,6 +58,7 @@ function handleEnterKey(event) {
 // Выбор фракции
 document.querySelectorAll(".faction-selection button").forEach(button => {
   button.addEventListener("click", () => {
+    console.log("Кнопка нажата:", button.getAttribute("data-faction"));
     const faction = button.getAttribute("data-faction");
     switch (faction) {
       case "fire":
@@ -73,9 +74,9 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
         currentBulletColor = "green";
         break;
     }
-    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
-    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
-    document.getElementById("startGameButton").classList.add(currentBulletColor); // Добавляем цвет кнопке
+    document.getElementById("factionSelection").style.display = "none";
+    document.getElementById("startGameButton").style.display = "block";
+    document.getElementById("startGameButton").classList.add(currentBulletColor);
   });
 });
 
