@@ -9,12 +9,10 @@
       display: none;
       border: 1px solid black;
     }
-    #authForm, #factionSelection, #postGameOptions {
-      display: none;
-    }
   </style>
 </head>
 <body>
+  <!-- Форма авторизации -->
   <div id="authForm">
     <input id="nicknameInput" placeholder="Никнейм">
     <input id="allianceInput" placeholder="Альянс">
@@ -22,25 +20,17 @@
     <button id="loginButton">Войти</button>
   </div>
 
-  <div id="factionSelection">
-    <button data-faction="fire">Огненный маг</button>
-    <button data-faction="ice">Ледяная колдунья</button>
-    <button data-faction="archer">Лучница</button>
-    <button data-faction="goblin">Гоблин</button>
-  </div>
-
+  <!-- Кнопки управления игрой -->
   <button id="startGameButton" style="display: none;">Начать игру</button>
   <button id="sendResultButton" style="display: none;">Отправить результат</button>
 
+  <!-- Холст для игры -->
   <canvas id="gameCanvas" width="640" height="640"></canvas>
 
-  <div id="postGameOptions" style="display: none;">
-    <button id="restartGameButton">Начать заново</button>
-    <button id="sendResultButtonPostGame">Отправить результат</button>
-  </div>
-
+  <!-- Статистика -->
   <div id="stats"></div>
 
+  <!-- Подключение скрипта -->
   <script src="game.js"></script>
 </body>
 </html>
