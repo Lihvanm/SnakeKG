@@ -1,55 +1,12 @@
-/* Общие стили */
 body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
   margin: 0;
-  background-color: #000;
-  color: #fff;
+  overflow: hidden;
 }
 
-#authForm, #factionSelection, #startGameContainer {
+#game-container {
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#startGameContainer {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-#startGameButton {
-  padding: 15px 30px;
-  font-size: 20px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: box-shadow 0.3s ease;
-}
-
-#startGameButton.red {
-  background-color: red;
-  box-shadow: 0 0 20px red;
-}
-
-#startGameButton.blue {
-  background-color: blue;
-  box-shadow: 0 0 20px blue;
-}
-
-#startGameButton.yellow {
-  background-color: yellow;
-  color: black;
-  box-shadow: 0 0 20px yellow;
-}
-
-#startGameButton.green {
-  background-color: green;
-  box-shadow: 0 0 20px green;
+  justify-content: center;
+  align-items: center;
 }
