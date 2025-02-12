@@ -73,8 +73,9 @@ document.querySelectorAll(".faction-selection button").forEach(button => {
         currentBulletColor = "green";
         break;
     }
-    document.getElementById("factionSelection").style.display = "none";
-    document.getElementById("startGameButton").style.display = "block";
+    document.getElementById("factionSelection").style.display = "none"; // Скрываем выбор фракции
+    document.getElementById("startGameButton").style.display = "block"; // Показываем кнопку "Начать игру"
+    document.getElementById("startGameButton").classList.add(currentBulletColor); // Добавляем цвет кнопке
   });
 });
 
